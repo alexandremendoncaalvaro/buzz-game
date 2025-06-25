@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Buzzer</title>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div>
+      <input id="secret" placeholder="Resposta secreta" />
+      <input id="maxPts" type="number" value="200" />
+      <button id="start">Iniciar Rodada</button>
+      <button id="next">Próxima Rodada</button>
+    </div>
+    <div id="buzzSection" style="display: none">
+      <h3 id="buzzPlayer"></h3>
+      <button id="correct">Correto</button>
+      <button id="incorrect">Incorreto</button>
+    </div>
+    <ul id="scores"></ul>
+    <script>
+      const socket = io("/admin");
+      let currentBuzzPlayer = null;
+
+      document.getElementById("start").onclick = () => {
+        const secret = document.getElementById("secret").value.trim();
+        const maxPoints = +document.getElementById("maxPts").value;
+        socket.emit("startRound", { secretAnswer: secret, maxPoints });
+      };
+      document.getElementById("next").onclick = () => {
+        socket.emit("nextRound");
+        document.getElementById("buzzSection").style.display = "none";
+      };
+
+      document.getElementById("correct").onclick = () => {
+        if (currentBuzzPlayer) {
+          socket.emit("answerResult", {
+            playerId: currentBuzzPlayer,
+            correct: true,
+          });
+          document.getElementById("buzzSection").style.display = "none";
+        }
+      };
+
+      document.getElementById("incorrect").onclick = () => {
+        if (currentBuzzPlayer) {
+          socket.emit("answerResult", {
+            playerId: currentBuzzPlayer,
+            correct: false,
+          });
+          document.getElementById("buzzSection").style.display = "none";
+        }
+      };
+
+      socket.on("scoreUpdate", (board) => {
+        const ul = document.getElementById("scores");
+        ul.innerHTML = "";
+        board.forEach((p) => {
+          const li = document.createElement("li");
+          li.textContent = `${p.name}: ${p.score}`;
+          ul.appendChild(li);
+        });
+      });
+
+      socket.on("buzzed", ({ playerId, name }) => {
+        currentBuzzPlayer = playerId;
+        document.getElementById(
+          "buzzPlayer"
+        ).textContent = `${name} fez buzz! A resposta está correta?`;
+        document.getElementById("buzzSection").style.display = "block";
+      });
+    </script>
+  </body>
+</html>

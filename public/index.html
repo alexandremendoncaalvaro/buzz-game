@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Buzzer Game</title>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div>
+      <label>Nome:</label>
+      <input id="name" />
+      <button id="join">Entrar</button>
+    </div>
+    <div id="game" style="display: none">
+      <p id="status">Aguardando rodada...</p>
+      <button id="buzz" disabled>Buzz (Barra de espaço)</button>
+    </div>
+    <script>
+      const socket = io("/game");
+      document.getElementById("join").onclick = () => {
+        const name = document.getElementById("name").value.trim();
+        if (!name) return;
+        socket.emit("join", { name });
+        document.getElementById("game").style.display = "block";
+      };
+      document.getElementById("buzz").onclick = () => socket.emit("buzz");
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "Space") socket.emit("buzz");
+      });
+
+      socket.on("roundStarted", () => {
+        document.getElementById("buzz").disabled = false;
+        document.getElementById("status").textContent =
+          "Rodada ativa - Aperte o buzzer!";
+      });
+      socket.on("buzzed", ({ name }) => {
+        alert(name + " buzzed!");
+        document.getElementById("status").textContent =
+          "Aguardando validação...";
+      });
+      socket.on("blocked", (ms) => {
+        document.getElementById("buzz").disabled = true;
+        document.getElementById("status").textContent =
+          "Você está bloqueado por 30s";
+      });
+      socket.on("answerProcessed", ({ correct, playerName }) => {
+        const message = correct
+          ? `${playerName} acertou!`
+          : `${playerName} errou.`;
+        document.getElementById("status").textContent = message;
+      });
+      socket.on("roundReset", () => {
+        document.getElementById("buzz").disabled = true;
+        document.getElementById("status").textContent =
+          "Aguardando próxima rodada...";
+      });
+    </script>
+  </body>
+</html>
