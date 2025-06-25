@@ -18,6 +18,8 @@ let roundState = {
   maxPoints: 200,
   buzzed: false,
   blocked: new Map(),
+  buzzPlayerId: null,
+  buzzDelta: null,
 };
 
 // Admin (host) namespace
@@ -34,12 +36,11 @@ io.of("/admin").on("connection", (socket) => {
   socket.on("answerResult", ({ playerId, correct }) => {
     const player = players.get(playerId);
     if (!player) return;
-    const delta = Date.now() - roundState.start;
     let earnedPoints = 0;
-    if (correct) {
+    if (correct && roundState.buzzDelta !== null) {
       earnedPoints = Math.max(
         0,
-        Math.ceil(roundState.maxPoints * (1 - delta / 5000))
+        roundState.maxPoints - Math.floor(roundState.buzzDelta / 1000)
       );
       player.score += earnedPoints;
     }
@@ -76,6 +77,8 @@ io.of("/admin").on("connection", (socket) => {
       maxPoints: 200,
       buzzed: false,
       blocked: new Map(),
+      buzzPlayerId: null,
+      buzzDelta: null,
     };
     io.of("/game").emit("roundReset");
   });
@@ -109,7 +112,8 @@ io.of("/game").on("connection", (socket) => {
     if (now - blockedAt < 30000) return;
 
     roundState.buzzed = true;
-    const delta = now - roundState.start;
+    roundState.buzzPlayerId = socket.id;
+    roundState.buzzDelta = now - roundState.start;
     const player = players.get(socket.id);
     io.of("/game").emit("buzzed", { name: player.name });
     io.of("/admin").emit("buzzed", { playerId: socket.id, name: player.name });
