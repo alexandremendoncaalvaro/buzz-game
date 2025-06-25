@@ -14,6 +14,14 @@
     <div id="game" style="display: none">
       <p id="status">Aguardando rodada...</p>
       <button id="buzz" disabled>Buzz (Barra de espaço)</button>
+      <div>
+        <h3>Placar</h3>
+        <ul id="scores"></ul>
+      </div>
+      <div>
+        <h3>Últimas Rodadas</h3>
+        <ul id="history"></ul>
+      </div>
     </div>
     <script>
       const socket = io("/game");
@@ -43,9 +51,9 @@
         document.getElementById("status").textContent =
           "Você está bloqueado por 30s";
       });
-      socket.on("answerProcessed", ({ correct, playerName }) => {
+      socket.on("answerProcessed", ({ correct, playerName, points }) => {
         const message = correct
-          ? `${playerName} acertou!`
+          ? `${playerName} acertou! (+${points}pts)`
           : `${playerName} errou.`;
         document.getElementById("status").textContent = message;
       });
@@ -53,6 +61,28 @@
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
           "Aguardando próxima rodada...";
+      });
+
+      socket.on("scoreUpdate", (board) => {
+        const ul = document.getElementById("scores");
+        ul.innerHTML = "";
+        board.forEach((p) => {
+          const li = document.createElement("li");
+          li.textContent = `${p.name}: ${p.score}`;
+          ul.appendChild(li);
+        });
+      });
+
+      socket.on("historyUpdate", (history) => {
+        const ul = document.getElementById("history");
+        ul.innerHTML = "";
+        history.slice(-5).forEach((round) => {
+          const li = document.createElement("li");
+          const status = round.correct ? "✓" : "✗";
+          const points = round.correct ? `(+${round.points}pts)` : "";
+          li.textContent = `${round.playerName}: ${status} ${points}`;
+          ul.appendChild(li);
+        });
       });
     </script>
   </body>

@@ -17,7 +17,14 @@
       <button id="correct">Correto</button>
       <button id="incorrect">Incorreto</button>
     </div>
-    <ul id="scores"></ul>
+    <div>
+      <h3>Placar</h3>
+      <ul id="scores"></ul>
+    </div>
+    <div>
+      <h3>Histórico</h3>
+      <ul id="history"></ul>
+    </div>
     <script>
       const socket = io("/admin");
       let currentBuzzPlayer = null;
@@ -68,6 +75,18 @@
           "buzzPlayer"
         ).textContent = `${name} fez buzz! A resposta está correta?`;
         document.getElementById("buzzSection").style.display = "block";
+      });
+
+      socket.on("historyUpdate", (history) => {
+        const ul = document.getElementById("history");
+        ul.innerHTML = "";
+        history.forEach((round) => {
+          const li = document.createElement("li");
+          const status = round.correct ? "✓" : "✗";
+          const points = round.correct ? `(+${round.points}pts)` : "";
+          li.textContent = `${round.timestamp} - ${round.playerName}: ${status} ${points} [${round.secret}]`;
+          ul.appendChild(li);
+        });
       });
     </script>
   </body>

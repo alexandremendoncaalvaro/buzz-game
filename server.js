@@ -10,6 +10,7 @@ app.use(express.static("public"));
 
 // Estado do jogo
 const players = new Map();
+const roundHistory = [];
 
 let roundState = {
   secret: null,
@@ -34,23 +35,37 @@ io.of("/admin").on("connection", (socket) => {
     const player = players.get(playerId);
     if (!player) return;
     const delta = Date.now() - roundState.start;
+    let earnedPoints = 0;
     if (correct) {
-      const pts = Math.max(
+      earnedPoints = Math.max(
         0,
         Math.ceil(roundState.maxPoints * (1 - delta / 5000))
       );
-      player.score += pts;
+      player.score += earnedPoints;
     }
+
+    roundHistory.push({
+      playerName: player.name,
+      correct,
+      points: earnedPoints,
+      secret: roundState.secret,
+      timestamp: new Date().toLocaleTimeString(),
+    });
+
     roundState.blocked.set(playerId, Date.now());
     const board = Array.from(players.values()).map((p) => ({
       name: p.name,
       score: p.score,
     }));
     io.of("/admin").emit("scoreUpdate", board);
+    io.of("/game").emit("scoreUpdate", board);
+    io.of("/admin").emit("historyUpdate", roundHistory);
+    io.of("/game").emit("historyUpdate", roundHistory);
     io.of("/game").to(playerId).emit("blocked", 30000);
     io.of("/game").emit("answerProcessed", {
       correct,
       playerName: player.name,
+      points: earnedPoints,
     });
   });
 
@@ -70,6 +85,7 @@ io.of("/admin").on("connection", (socket) => {
     "scoreUpdate",
     Array.from(players.values()).map((p) => ({ name: p.name, score: p.score }))
   );
+  socket.emit("historyUpdate", roundHistory);
 });
 
 // Player namespace
@@ -82,6 +98,8 @@ io.of("/game").on("connection", (socket) => {
       score: p.score,
     }));
     io.of("/admin").emit("scoreUpdate", board);
+    io.of("/game").emit("scoreUpdate", board);
+    socket.emit("historyUpdate", roundHistory);
   });
 
   socket.on("buzz", () => {
