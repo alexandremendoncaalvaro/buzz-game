@@ -1,33 +1,12 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const os = require("os");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.set("trust proxy", true);
 app.use(express.static("public"));
-
-// Função para obter IP IPv4 local da máquina
-function getLocalIPv4() {
-  const networks = os.networkInterfaces();
-  for (const name of Object.keys(networks)) {
-    for (const net of networks[name]) {
-      if (net.family === "IPv4" && !net.internal) {
-        return net.address;
-      }
-    }
-  }
-  return "127.0.0.1";
-}
-
-// Middleware para capturar IP real em rotas HTTP
-app.use((req, res, next) => {
-  req.realIP = req.ip;
-  next();
-});
 
 // Estado do jogo
 const players = new Map();
@@ -43,7 +22,6 @@ let roundState = {
   buzzDelta: null,
 };
 
-// Atualiza status de bloqueio a cada segundo
 setInterval(() => {
   const adminBoard = Array.from(players.values()).map((p) => {
     const blockedAt = roundState.blocked.get(p.id) || 0;
@@ -55,7 +33,6 @@ setInterval(() => {
     return {
       name: p.name,
       score: p.score,
-      ip: p.ip,
       blocked: isBlocked,
       blockedTime: remainingTime,
       playerId: p.playerId,
@@ -125,7 +102,6 @@ io.of("/admin").on("connection", (socket) => {
       return {
         name: p.name,
         score: p.score,
-        ip: p.ip,
         blocked: isBlocked,
         blockedTime: remainingTime,
         playerId: p.playerId,
@@ -143,7 +119,6 @@ io.of("/admin").on("connection", (socket) => {
       points: earnedPoints,
     });
 
-    // Encerra a rodada automaticamente após validação
     roundState = {
       secret: null,
       start: null,
@@ -192,10 +167,8 @@ io.of("/admin").on("connection", (socket) => {
     });
 
     if (playerSocketId) {
-      const player = players.get(playerSocketId);
       players.delete(playerSocketId);
 
-      // Desconecta o jogador
       const playerSocket = io.of("/game").sockets.get(playerSocketId);
       if (playerSocket) {
         playerSocket.emit("forceLogout");
@@ -209,7 +182,6 @@ io.of("/admin").on("connection", (socket) => {
       const adminBoard = Array.from(players.values()).map((p) => ({
         name: p.name,
         score: p.score,
-        ip: p.ip,
         playerId: p.playerId,
       }));
 
@@ -218,11 +190,9 @@ io.of("/admin").on("connection", (socket) => {
     }
   });
 
-  // envia lista inicial de jogadores e placar
   const initialBoard = Array.from(players.values()).map((p) => ({
     name: p.name,
     score: p.score,
-    ip: p.ip,
     playerId: p.playerId,
   }));
   socket.emit("scoreUpdate", initialBoard);
@@ -250,50 +220,11 @@ io.of("/game").on("connection", (socket) => {
         Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
-    // Captura o IP do cliente tentando diferentes métodos para obter IPv4
-    let playerIP = "Desconhecido";
-
-    // Tenta headers de proxy primeiro
-    const forwardedFor = socket.handshake.headers["x-forwarded-for"];
-    const realIP = socket.handshake.headers["x-real-ip"];
-    const clientIP = socket.handshake.headers["x-client-ip"];
-    const cfConnectingIP = socket.handshake.headers["cf-connecting-ip"];
-
-    if (forwardedFor) {
-      playerIP = forwardedFor.split(",")[0].trim();
-    } else if (realIP) {
-      playerIP = realIP;
-    } else if (clientIP) {
-      playerIP = clientIP;
-    } else if (cfConnectingIP) {
-      playerIP = cfConnectingIP;
-    } else {
-      playerIP = socket.handshake.address;
-    }
-
-    // Remove prefixo IPv6 se presente
-    if (playerIP.startsWith("::ffff:")) {
-      playerIP = playerIP.substring(7);
-    }
-
-    // Se ainda for IPv6 ou localhost, tenta obter IP local da máquina
-    if (playerIP.includes(":") && !playerIP.includes(".")) {
-      playerIP = getLocalIPv4();
-    }
-
-    // Se for loopback, também usa o IP local da máquina
-    if (playerIP === "127.0.0.1" || playerIP === "::1") {
-      const localIP = getLocalIPv4();
-      if (localIP !== "127.0.0.1") {
-        playerIP = localIP;
-      }
-    }
     players.set(socket.id, {
       id: socket.id,
       playerId: finalPlayerId,
       name,
       score: playerScore,
-      ip: playerIP,
     });
 
     socket.emit("joined", { socketId: socket.id, playerId: finalPlayerId });
@@ -304,7 +235,6 @@ io.of("/game").on("connection", (socket) => {
     const adminBoard = Array.from(players.values()).map((p) => ({
       name: p.name,
       score: p.score,
-      ip: p.ip,
       playerId: p.playerId,
     }));
     io.of("/admin").emit("scoreUpdate", adminBoard);
@@ -333,7 +263,6 @@ io.of("/game").on("connection", (socket) => {
       const adminBoard = Array.from(players.values()).map((p) => ({
         name: p.name,
         score: p.score,
-        ip: p.ip,
         playerId: p.playerId,
       }));
 

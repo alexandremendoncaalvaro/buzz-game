@@ -372,7 +372,7 @@
           li.innerHTML = `
             <span><strong>${p.name}</strong> ${blockedInfo}</span>
             <span>
-              ${p.score} pts ${p.ip ? `(${p.ip})` : ""}
+              ${p.score} pts
               <button class="remove-player" data-player-id="${
                 p.playerId || p.id
               }">🗑️ Remover</button>
@@ -381,7 +381,6 @@
           ul.appendChild(li);
         });
 
-        // Adiciona event listeners para os botões de remover
         document.querySelectorAll(".remove-player").forEach((button) => {
           button.onclick = (e) => {
             const playerId = e.target.getAttribute("data-player-id");
