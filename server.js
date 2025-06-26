@@ -31,6 +31,10 @@ io.of("/admin").on("connection", (socket) => {
     roundState.buzzed = false;
     roundState.blocked.clear();
     io.of("/game").emit("roundStarted");
+    io.of("/admin").emit("roundStarted", {
+      secret: secretAnswer,
+      maxPoints: roundState.maxPoints,
+    });
   });
 
   socket.on("answerResult", ({ playerId, correct }) => {
@@ -58,7 +62,12 @@ io.of("/admin").on("connection", (socket) => {
       name: p.name,
       score: p.score,
     }));
-    io.of("/admin").emit("scoreUpdate", board);
+    const adminBoard = Array.from(players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+      ip: p.ip,
+    }));
+    io.of("/admin").emit("scoreUpdate", adminBoard);
     io.of("/game").emit("scoreUpdate", board);
     io.of("/admin").emit("historyUpdate", roundHistory);
     io.of("/game").emit("historyUpdate", roundHistory);
@@ -81,28 +90,99 @@ io.of("/admin").on("connection", (socket) => {
       buzzDelta: null,
     };
     io.of("/game").emit("roundReset");
+    io.of("/admin").emit("roundReset");
+  });
+
+  socket.on("cancelRound", () => {
+    if (roundState.secret) {
+      roundHistory.push({
+        playerName: "Sistema",
+        correct: false,
+        points: 0,
+        secret: roundState.secret,
+        timestamp: new Date().toLocaleTimeString(),
+        cancelled: true,
+      });
+
+      roundState = {
+        secret: null,
+        start: null,
+        maxPoints: 200,
+        buzzed: false,
+        blocked: new Map(),
+        buzzPlayerId: null,
+        buzzDelta: null,
+      };
+
+      io.of("/game").emit("roundReset");
+      io.of("/admin").emit("roundReset");
+      io.of("/admin").emit("historyUpdate", roundHistory);
+      io.of("/game").emit("historyUpdate", roundHistory);
+    }
   });
 
   // envia lista inicial de jogadores e placar
-  socket.emit(
-    "scoreUpdate",
-    Array.from(players.values()).map((p) => ({ name: p.name, score: p.score }))
-  );
+  const initialBoard = Array.from(players.values()).map((p) => ({
+    name: p.name,
+    score: p.score,
+    ip: p.ip,
+  }));
+  socket.emit("scoreUpdate", initialBoard);
   socket.emit("historyUpdate", roundHistory);
 });
 
 // Player namespace
 io.of("/game").on("connection", (socket) => {
-  socket.on("join", ({ name }) => {
-    players.set(socket.id, { id: socket.id, name, score: 0 });
-    socket.emit("joined", socket.id);
+  socket.on("join", ({ name, playerId }) => {
+    let finalPlayerId = playerId;
+    let playerScore = 0;
+
+    if (playerId) {
+      const existingPlayer = Array.from(players.values()).find(
+        (p) => p.playerId === playerId
+      );
+      if (existingPlayer) {
+        playerScore = existingPlayer.score;
+        players.delete(existingPlayer.id);
+      }
+    }
+
+    if (!finalPlayerId) {
+      finalPlayerId =
+        Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    const playerIP = socket.handshake.address;
+    players.set(socket.id, {
+      id: socket.id,
+      playerId: finalPlayerId,
+      name,
+      score: playerScore,
+      ip: playerIP,
+    });
+
+    socket.emit("joined", { socketId: socket.id, playerId: finalPlayerId });
     const board = Array.from(players.values()).map((p) => ({
       name: p.name,
       score: p.score,
     }));
-    io.of("/admin").emit("scoreUpdate", board);
+    const adminBoard = Array.from(players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+      ip: p.ip,
+    }));
+    io.of("/admin").emit("scoreUpdate", adminBoard);
     io.of("/game").emit("scoreUpdate", board);
     socket.emit("historyUpdate", roundHistory);
+  });
+
+  socket.on("getPlayerInfo", ({ playerId }) => {
+    const existingPlayer = Array.from(players.values()).find(
+      (p) => p.playerId === playerId
+    );
+    if (existingPlayer) {
+      socket.emit("playerInfo", { name: existingPlayer.name });
+    }
   });
 
   socket.on("buzz", () => {

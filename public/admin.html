@@ -15,7 +15,11 @@
         placeholder="Pontos/Segundos máximos"
       />
       <button id="start">Iniciar Rodada</button>
-      <button id="next">Próxima Rodada</button>
+      <button id="cancel" style="display: none">Cancelar Rodada</button>
+    </div>
+    <div id="roundStatus" style="display: none">
+      <h3>Rodada Ativa</h3>
+      <p id="currentRound"></p>
     </div>
     <div id="buzzSection" style="display: none">
       <h3 id="buzzPlayer"></h3>
@@ -37,11 +41,12 @@
       document.getElementById("start").onclick = () => {
         const secret = document.getElementById("secret").value.trim();
         const maxPoints = +document.getElementById("maxPts").value;
+        if (!secret) return alert("Digite a resposta secreta!");
         socket.emit("startRound", { secretAnswer: secret, maxPoints });
       };
-      document.getElementById("next").onclick = () => {
-        socket.emit("nextRound");
-        document.getElementById("buzzSection").style.display = "none";
+
+      document.getElementById("cancel").onclick = () => {
+        socket.emit("cancelRound");
       };
 
       document.getElementById("correct").onclick = () => {
@@ -70,6 +75,9 @@
         board.forEach((p) => {
           const li = document.createElement("li");
           li.textContent = `${p.name}: ${p.score}`;
+          if (p.ip) {
+            li.textContent += ` (${p.ip})`;
+          }
           ul.appendChild(li);
         });
       });
@@ -87,11 +95,33 @@
         ul.innerHTML = "";
         history.forEach((round) => {
           const li = document.createElement("li");
-          const status = round.correct ? "✓" : "✗";
-          const points = round.correct ? `(+${round.points}pts)` : "";
-          li.textContent = `${round.timestamp} - ${round.playerName}: ${status} ${points} [${round.secret}]`;
+          if (round.cancelled) {
+            li.textContent = `${round.timestamp} - Rodada cancelada [${round.secret}]`;
+            li.style.color = "red";
+          } else {
+            const status = round.correct ? "✓" : "✗";
+            const points = round.correct ? `(+${round.points}pts)` : "";
+            li.textContent = `${round.timestamp} - ${round.playerName}: ${status} ${points} [${round.secret}]`;
+          }
           ul.appendChild(li);
         });
+      });
+
+      socket.on("roundStarted", ({ secret, maxPoints }) => {
+        document.getElementById("roundStatus").style.display = "block";
+        document.getElementById(
+          "currentRound"
+        ).textContent = `Pergunta: ${secret} | Máximo: ${maxPoints} pontos`;
+        document.getElementById("start").style.display = "none";
+        document.getElementById("cancel").style.display = "inline";
+        document.getElementById("secret").value = "";
+      });
+
+      socket.on("roundReset", () => {
+        document.getElementById("roundStatus").style.display = "none";
+        document.getElementById("buzzSection").style.display = "none";
+        document.getElementById("start").style.display = "inline";
+        document.getElementById("cancel").style.display = "none";
       });
     </script>
   </body>

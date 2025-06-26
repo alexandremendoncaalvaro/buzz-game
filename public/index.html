@@ -6,12 +6,15 @@
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
-    <div>
+    <div id="login">
       <label>Nome:</label>
       <input id="name" />
       <button id="join">Entrar</button>
     </div>
     <div id="game" style="display: none">
+      <div id="playerInfo">
+        <h3 id="playerName"></h3>
+      </div>
       <p id="status">Aguardando rodada...</p>
       <button id="buzz" disabled>Buzz (Barra de espaço)</button>
       <div>
@@ -25,15 +28,56 @@
     </div>
     <script>
       const socket = io("/game");
+      const urlParams = new URLSearchParams(window.location.search);
+      const playerId = urlParams.get("id");
+
+      if (playerId) {
+        socket.emit("getPlayerInfo", { playerId });
+      }
+
+      socket.on("playerInfo", ({ name }) => {
+        if (name) {
+          joinGame(name, playerId);
+        }
+      });
+
+      function joinGame(name, id) {
+        socket.emit("join", { name, playerId: id });
+        document.getElementById("login").style.display = "none";
+        document.getElementById("game").style.display = "block";
+        document.getElementById("playerName").textContent = `Jogador: ${name}`;
+      }
+
+      socket.on("joined", ({ playerId }) => {
+        if (!urlParams.get("id")) {
+          const name = document.getElementById("name").value.trim();
+          const newUrl = `${window.location.pathname}?id=${playerId}`;
+          window.history.replaceState({}, "", newUrl);
+        }
+      });
+
       document.getElementById("join").onclick = () => {
         const name = document.getElementById("name").value.trim();
-        if (!name) return;
-        socket.emit("join", { name });
-        document.getElementById("game").style.display = "block";
+        if (!name) return alert("Digite seu nome!");
+        joinGame(name);
       };
+
+      document.getElementById("name").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("join").click();
+        }
+      });
+
       document.getElementById("buzz").onclick = () => socket.emit("buzz");
+
       window.addEventListener("keydown", (e) => {
-        if (e.code === "Space") socket.emit("buzz");
+        if (
+          e.code === "Space" &&
+          document.getElementById("game").style.display !== "none"
+        ) {
+          e.preventDefault();
+          socket.emit("buzz");
+        }
       });
 
       socket.on("roundStarted", () => {
@@ -41,22 +85,26 @@
         document.getElementById("status").textContent =
           "Rodada ativa - Aperte o buzzer!";
       });
+
       socket.on("buzzed", ({ name }) => {
         alert(name + " buzzed!");
         document.getElementById("status").textContent =
           "Aguardando validação...";
       });
+
       socket.on("blocked", (ms) => {
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
           "Você está bloqueado por 30s";
       });
+
       socket.on("answerProcessed", ({ correct, playerName, points }) => {
         const message = correct
           ? `${playerName} acertou! (+${points}pts)`
           : `${playerName} errou.`;
         document.getElementById("status").textContent = message;
       });
+
       socket.on("roundReset", () => {
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
@@ -78,11 +126,20 @@
         ul.innerHTML = "";
         history.slice(-5).forEach((round) => {
           const li = document.createElement("li");
-          const status = round.correct ? "✓" : "✗";
-          const points = round.correct ? `(+${round.points}pts)` : "";
-          li.textContent = `${round.playerName}: ${status} ${points}`;
+          if (round.cancelled) {
+            li.textContent = "Rodada cancelada";
+            li.style.color = "red";
+          } else {
+            const status = round.correct ? "✓" : "✗";
+            const points = round.correct ? `(+${round.points}pts)` : "";
+            li.textContent = `${round.playerName}: ${status} ${points}`;
+          }
           ul.appendChild(li);
         });
+      });
+
+      socket.on("disconnect", () => {
+        // Mantém URL com ID para reconexão
       });
     </script>
   </body>
