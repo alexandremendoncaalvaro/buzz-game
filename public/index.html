@@ -338,9 +338,16 @@
       </div>
     </div>
     <script>
-      const socket = io("/game");
       const urlParams = new URLSearchParams(window.location.search);
+      const gameToken = urlParams.get("game");
       const playerId = urlParams.get("id");
+
+      if (!gameToken) {
+        alert("Token de jogo inválido. Redirecionando...");
+        window.location.href = "/create.html";
+      }
+
+      const socket = io();
 
       if (playerId) {
         socket.emit("getPlayerInfo", { playerId });
@@ -353,7 +360,7 @@
       });
 
       function joinGame(name, id) {
-        socket.emit("join", { name, playerId: id });
+        socket.emit("player-join", { gameToken, name, playerId: id });
         document.getElementById("login").style.display = "none";
         document.getElementById("game").style.display = "block";
         document.getElementById("playerName").textContent = `Jogador: ${name}`;
@@ -362,9 +369,14 @@
       socket.on("joined", ({ playerId }) => {
         if (!urlParams.get("id")) {
           const name = document.getElementById("name").value.trim();
-          const newUrl = `${window.location.pathname}?id=${playerId}`;
+          const newUrl = `${window.location.pathname}?game=${gameToken}&id=${playerId}`;
           window.history.replaceState({}, "", newUrl);
         }
+      });
+
+      socket.on("error", ({ message }) => {
+        alert(`Erro: ${message}`);
+        window.location.href = "/create.html";
       });
 
       document.getElementById("join").onclick = () => {
@@ -384,7 +396,8 @@
         document.getElementById("login").style.display = "block";
         document.getElementById("game").style.display = "none";
         document.getElementById("name").value = "";
-        window.history.replaceState({}, "", window.location.pathname);
+        const newUrl = `${window.location.pathname}?game=${gameToken}`;
+        window.history.replaceState({}, "", newUrl);
         location.reload();
       };
 

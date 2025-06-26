@@ -334,6 +334,34 @@
       <h1>Admin - Buzz Games</h1>
 
       <div class="card">
+        <div id="gameInfo" class="controls" style="display: none">
+          <h3>🎮 Links da Sala</h3>
+          <div style="margin: 1rem 0">
+            <label>Link do Admin:</label>
+            <input
+              type="text"
+              id="adminLink"
+              readonly
+              style="background: #21262d; color: #58a6ff"
+            />
+          </div>
+          <div style="margin: 1rem 0">
+            <label>Link dos Jogadores:</label>
+            <input
+              type="text"
+              id="gameLink"
+              readonly
+              style="background: #21262d; color: #7ee787"
+            />
+            <button
+              onclick="copyGameLink()"
+              style="margin-left: 0.5rem; padding: 0.5rem 1rem"
+            >
+              📋 Copiar
+            </button>
+          </div>
+        </div>
+
         <div class="controls">
           <div class="controls-row">
             <input id="secret" placeholder="Digite a resposta correta" />
@@ -388,8 +416,45 @@
       </div>
     </div>
     <script>
-      const socket = io("/admin");
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminToken = urlParams.get("token");
+      const gameToken = urlParams.get("game");
+
+      if (!adminToken || !gameToken) {
+        alert("Token de admin inválido. Redirecionando...");
+        window.location.href = "/create.html";
+      }
+
+      const socket = io();
       let currentBuzzPlayer = null;
+
+      function copyGameLink() {
+        const gameLink = document.getElementById("gameLink");
+        gameLink.select();
+        gameLink.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(gameLink.value);
+        alert("Link copiado para área de transferência!");
+      }
+
+      function showGameInfo() {
+        const adminLink = `${window.location.origin}/admin.html?token=${adminToken}&game=${gameToken}`;
+        const playerLink = `${window.location.origin}/index.html?game=${gameToken}`;
+
+        document.getElementById("adminLink").value = adminLink;
+        document.getElementById("gameLink").value = playerLink;
+        document.getElementById("gameInfo").style.display = "block";
+      }
+
+      socket.emit("admin-join", { adminToken });
+
+      socket.on("joined", ({ gameToken: receivedGameToken }) => {
+        showGameInfo();
+      });
+
+      socket.on("error", ({ message }) => {
+        alert(`Erro: ${message}`);
+        window.location.href = "/create.html";
+      });
 
       document.getElementById("start").onclick = () => {
         const secret = document.getElementById("secret").value.trim();
