@@ -77,9 +77,8 @@ io.of("/admin").on("connection", (socket) => {
       playerName: player.name,
       points: earnedPoints,
     });
-  });
 
-  socket.on("nextRound", () => {
+    // Encerra a rodada automaticamente após validação
     roundState = {
       secret: null,
       start: null,
