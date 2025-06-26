@@ -85,7 +85,7 @@ function getGameRoom(adminToken, gameToken) {
 app.post("/create-game", (req, res) => {
   const adminToken = `admin-${Math.random().toString(36).substr(2, 12)}`;
   const gameToken = `game-${Math.random().toString(36).substr(2, 8)}`;
-  const roomTitle = req.body?.title || "Buzz Game";
+  const roomTitle = (req.body && req.body.title) || "Buzz Game";
 
   const room = new GameRoom(adminToken, gameToken, roomTitle);
   gameRooms.set(adminToken, room);
