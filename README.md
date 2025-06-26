@@ -47,6 +47,7 @@ O sistema foi projetado para suportar múltiplas salas simultâneas e independen
 - **Frontend:** HTML, CSS e JavaScript puro, com páginas separadas para criação, jogadores e administrador.
 - **Deployment:** Containerizável com Docker.
 - **Sistema de Salas:** Arquitetura baseada em tokens seguros para isolamento total entre jogos.
+- **Compatibilidade:** Suporta Node.js versão 10.x ou superior (compatível com Glitch.com e outras plataformas).
 
 ### 4. Como Usar
 
