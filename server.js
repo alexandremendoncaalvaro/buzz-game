@@ -226,9 +226,10 @@ io.on("connection", (socket) => {
 
     let finalPlayerId = playerId;
     let playerScore = 0;
+    let existingPlayer = null;
 
     if (playerId) {
-      const existingPlayer = Array.from(room.players.values()).find(
+      existingPlayer = Array.from(room.players.values()).find(
         (p) => p.playerId === playerId
       );
       if (existingPlayer) {
@@ -245,8 +246,9 @@ io.on("connection", (socket) => {
     room.players.set(socket.id, {
       id: socket.id,
       playerId: finalPlayerId,
-      name,
+      name: existingPlayer ? existingPlayer.name : name,
       score: playerScore,
+      disconnected: false,
     });
 
     socket.join(`game-${gameToken}`);
@@ -259,15 +261,19 @@ io.on("connection", (socket) => {
       roomTitle: room.roomTitle,
     });
 
-    const board = Array.from(room.players.values()).map((p) => ({
-      name: p.name,
-      score: p.score,
-    }));
-    const adminBoard = Array.from(room.players.values()).map((p) => ({
-      name: p.name,
-      score: p.score,
-      playerId: p.playerId,
-    }));
+    const board = Array.from(room.players.values())
+      .filter((p) => !p.disconnected)
+      .map((p) => ({
+        name: p.name,
+        score: p.score,
+      }));
+    const adminBoard = Array.from(room.players.values())
+      .filter((p) => !p.disconnected)
+      .map((p) => ({
+        name: p.name,
+        score: p.score,
+        playerId: p.playerId,
+      }));
 
     io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
     io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
@@ -436,10 +442,13 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("getPlayerInfo", ({ playerId }) => {
-    if (!socket.room) return;
+  socket.on("getPlayerInfo", ({ playerId, gameToken }) => {
+    if (!playerId || !gameToken) return;
 
-    const existingPlayer = Array.from(socket.room.players.values()).find(
+    const room = getGameRoom(null, gameToken);
+    if (!room) return;
+
+    const existingPlayer = Array.from(room.players.values()).find(
       (p) => p.playerId === playerId
     );
     if (existingPlayer) {
@@ -455,15 +464,19 @@ io.on("connection", (socket) => {
     if (player) {
       room.players.delete(socket.id);
 
-      const board = Array.from(room.players.values()).map((p) => ({
-        name: p.name,
-        score: p.score,
-      }));
-      const adminBoard = Array.from(room.players.values()).map((p) => ({
-        name: p.name,
-        score: p.score,
-        playerId: p.playerId,
-      }));
+      const board = Array.from(room.players.values())
+        .filter((p) => !p.disconnected)
+        .map((p) => ({
+          name: p.name,
+          score: p.score,
+        }));
+      const adminBoard = Array.from(room.players.values())
+        .filter((p) => !p.disconnected)
+        .map((p) => ({
+          name: p.name,
+          score: p.score,
+          playerId: p.playerId,
+        }));
 
       io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
       io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
@@ -504,20 +517,8 @@ io.on("connection", (socket) => {
       const room = socket.room;
       const player = room.players.get(socket.id);
       if (player) {
-        room.players.delete(socket.id);
-
-        const board = Array.from(room.players.values()).map((p) => ({
-          name: p.name,
-          score: p.score,
-        }));
-        const adminBoard = Array.from(room.players.values()).map((p) => ({
-          name: p.name,
-          score: p.score,
-          playerId: p.playerId,
-        }));
-
-        io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
-        io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
+        player.disconnected = true;
+        player.disconnectedAt = Date.now();
       }
     }
   });

@@ -367,7 +367,7 @@
       const socket = io();
 
       if (playerId) {
-        socket.emit("getPlayerInfo", { playerId });
+        socket.emit("getPlayerInfo", { playerId, gameToken });
       }
 
       socket.on("playerInfo", ({ name }) => {
