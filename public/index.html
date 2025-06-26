@@ -368,6 +368,7 @@
           e.code === "Space" &&
           document.getElementById("game").style.display !== "none" &&
           document.getElementById("buzzContainer").style.display !== "none" &&
+          document.getElementById("buzzContainer").style.display === "block" &&
           !document.getElementById("buzz").disabled &&
           document.getElementById("blockedMessage").style.display === "none"
         ) {
@@ -389,22 +390,23 @@
       });
 
       socket.on("buzzed", ({ name }) => {
-        if (name === document.getElementById("playerName").textContent) {
+        const myName = document.getElementById("playerName").textContent;
+        if (name === myName) {
           document.getElementById("status").textContent =
             "Você fez buzz! Aguarde validação...";
-          document.getElementById("buzz").disabled = true;
         } else {
           document.getElementById(
             "status"
           ).textContent = `${name} fez buzz! Aguarde validação...`;
-          document.getElementById("buzz").disabled = true;
         }
+        // Durante validação, esconder o botão para todos
+        document.getElementById("buzzContainer").style.display = "none";
       });
 
       let blockTimer = null;
 
       socket.on("blocked", ({ duration, startTime }) => {
-        document.getElementById("buzz").disabled = true;
+        document.getElementById("buzzContainer").style.display = "none";
         document.getElementById("blockedMessage").style.display = "block";
 
         if (blockTimer) {
@@ -419,9 +421,7 @@
             clearInterval(blockTimer);
             blockTimer = null;
             document.getElementById("blockedMessage").style.display = "none";
-            document.getElementById("buzz").disabled = false;
-            document.getElementById("status").textContent =
-              "Você pode tentar novamente!";
+            // Não mostrar botão automaticamente - deixar para unblocked decidir
           } else {
             document.getElementById("countdown").textContent = remaining;
           }
@@ -434,21 +434,23 @@
           : `${playerName} errou.`;
         document.getElementById("status").textContent = message;
 
-        // Se a resposta foi correta, a rodada vai encerrar
         if (correct) {
-          document.getElementById("buzz").disabled = true;
+          // Se a resposta foi correta, a rodada vai encerrar - esconder botão
           document.getElementById("buzzContainer").style.display = "none";
         } else {
-          // Se foi incorreta, apenas continua a rodada
-          // O botão só será habilitado se o jogador não estiver bloqueado
+          // Se foi incorreta, mostrar botão novamente para outros jogadores
           const myName = document.getElementById("playerName").textContent;
           if (
             playerName !== myName &&
             document.getElementById("blockedMessage").style.display === "none"
           ) {
+            document.getElementById("buzzContainer").style.display = "block";
             document.getElementById("buzz").disabled = false;
             document.getElementById("status").textContent =
               message + " Você pode tentar!";
+          } else if (playerName === myName) {
+            // Se fui eu que errei, manter botão escondido até desbloquear
+            document.getElementById("buzzContainer").style.display = "none";
           }
         }
       });
@@ -460,12 +462,17 @@
         }
         document.getElementById("blockedMessage").style.display = "none";
 
-        // Só habilita o botão se há uma rodada ativa e o container está visível
+        // Só mostra o botão se há uma rodada ativa e ninguém está fazendo buzz
         if (
-          document.getElementById("buzzContainer").style.display !== "none" &&
           document.getElementById("status").textContent !==
-            "Aguardando próxima rodada..."
+            "Aguardando próxima rodada..." &&
+          !document
+            .getElementById("status")
+            .textContent.includes("Aguarde validação") &&
+          document.getElementById("status").textContent !==
+            "Aguardando rodada..."
         ) {
+          document.getElementById("buzzContainer").style.display = "block";
           document.getElementById("buzz").disabled = false;
           document.getElementById("status").textContent =
             "Você pode tentar novamente!";

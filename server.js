@@ -40,6 +40,17 @@ function resetRound() {
     pausedAt: null,
     totalPausedTime: 0,
   };
+
+  // Atualizar o admin board após limpar bloqueios
+  const adminBoard = Array.from(players.values()).map((p) => ({
+    name: p.name,
+    score: p.score,
+    blocked: false,
+    blockedTime: 0,
+    playerId: p.playerId,
+  }));
+
+  io.of("/admin").emit("scoreUpdate", adminBoard);
   io.of("/game").emit("roundReset");
   io.of("/admin").emit("roundReset");
 }
