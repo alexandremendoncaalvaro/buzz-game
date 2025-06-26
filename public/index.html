@@ -2,28 +2,185 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <title>Buzzer Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AmbevTech Games - Qual o Filme ou Série?</title>
     <script src="/socket.io/socket.io.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+      }
+
+      .container {
+        text-align: center;
+        max-width: 600px;
+        width: 90%;
+        padding: 2rem;
+      }
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      input {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 10px;
+        margin: 1rem 0;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+      }
+
+      button {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.3rem;
+        font-weight: bold;
+        border-radius: 50px;
+        cursor: pointer;
+        margin: 1rem 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      button:disabled {
+        background: #999;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      #buzz {
+        background: linear-gradient(45deg, #10ac84, #00d2d3);
+        font-size: 2rem;
+        padding: 1.5rem 3rem;
+        margin: 2rem 0;
+      }
+
+      #status {
+        font-size: 1.3rem;
+        margin: 1rem 0;
+        font-weight: 500;
+      }
+
+      .player-info {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .score-list {
+        list-style: none;
+        text-align: left;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .score-list li {
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0.5rem 0;
+        padding: 0.8rem;
+        border-radius: 10px;
+        font-size: 1.1rem;
+      }
+
+      .history-list {
+        list-style: none;
+        text-align: left;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .history-list li {
+        background: rgba(255, 255, 255, 0.05);
+        margin: 0.3rem 0;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+      }
+
+      h3 {
+        margin: 1.5rem 0 1rem 0;
+        font-size: 1.5rem;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2rem;
+        }
+        .container {
+          padding: 1rem;
+        }
+        #buzz {
+          font-size: 1.5rem;
+          padding: 1rem 2rem;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="login">
-      <label>Nome:</label>
-      <input id="name" />
-      <button id="join">Entrar</button>
-    </div>
-    <div id="game" style="display: none">
-      <div id="playerInfo">
-        <h3 id="playerName"></h3>
+    <div class="container">
+      <h1>AmbevTech Games</h1>
+      <h2>🎯 Qual o Filme ou Série?</h2>
+
+      <div id="login" class="card">
+        <h3>Entre no Jogo</h3>
+        <input id="name" placeholder="Digite seu nome" />
+        <button id="join">Entrar</button>
       </div>
-      <p id="status">Aguardando rodada...</p>
-      <button id="buzz" disabled>Buzz (Barra de espaço)</button>
-      <div>
-        <h3>Placar</h3>
-        <ul id="scores"></ul>
-      </div>
-      <div>
-        <h3>Últimas Rodadas</h3>
-        <ul id="history"></ul>
+
+      <div id="game" style="display: none">
+        <div id="playerInfo" class="player-info">
+          <h3 id="playerName"></h3>
+        </div>
+
+        <div class="card">
+          <p id="status">Aguardando rodada...</p>
+          <button id="buzz" disabled>🚨 RESPONDER!</button><br />
+          <small>Pressione ESPAÇO para acionar o botão de resposta</small>
+        </div>
+
+        <div class="card">
+          <h3>🏆 Placar</h3>
+          <ul id="scores" class="score-list"></ul>
+        </div>
+
+        <div class="card">
+          <h3>📝 Últimas Rodadas</h3>
+          <ul id="history" class="history-list"></ul>
+        </div>
       </div>
     </div>
     <script>
