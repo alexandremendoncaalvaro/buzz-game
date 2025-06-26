@@ -343,8 +343,8 @@
       const playerId = urlParams.get("id");
 
       if (!gameToken) {
-        alert("Token de jogo inválido. Redirecionando...");
         window.location.href = "/create.html";
+        return;
       }
 
       // Carregar informações da sala antes mesmo do login
