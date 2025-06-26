@@ -1,20 +1,32 @@
-## Buzz Game - Quiz Interativo em Tempo Real
+## Buzz Game - Plataforma para Jogos Interativos
 
 ### 1. Como Funciona (Para Todos)
 
-Este é um jogo de quiz onde uma pessoa (o **Admin**) controla a partida e os outros são os **Jogadores**.
+Esta é uma plataforma flexível para criar jogos de quiz e competição em tempo real. A ideia é simples: uma pessoa (o **Admin**) apresenta um desafio, e os outros (**Jogadores**) competem para responder primeiro. O sistema cuida do tempo, da ordem de quem aperta o "buzz" e da pontuação.
+
+A beleza está na versatilidade. O "desafio" pode ser qualquer coisa que você consiga apresentar para os jogadores, seja compartilhando sua tela, lendo uma pergunta em voz alta ou mostrando um vídeo.
+
+#### Exemplo de Jogo: "Adivinhe o Filme pela Cena"
+
+Uma maneira divertida que usamos foi a seguinte:
+
+- O **Admin** preparou uma apresentação de slides. Cada slide continha uma imagem (frame) de um filme ou série famosa.
+- Durante uma chamada de vídeo, o Admin compartilhava a tela e iniciava uma rodada no Buzz Game para cada slide, com duração de 20 segundos.
+- A "resposta secreta" no sistema era o nome do filme.
+- Os **Jogadores** viam a imagem e corriam para apertar o "BUZZ". O primeiro a apertar dava seu palpite.
+- O **Admin** validava a resposta, e o jogo seguia para o próximo slide/rodada. Foi super divertido!
 
 #### Para o Administrador (Host)
 
 - **Você comanda o jogo:** Através de uma página de admin, você inicia, pausa e encerra as rodadas.
-- **Crie a pergunta:** Para cada rodada, você define uma "resposta secreta" (que você provavelmente vai ler em voz alta para os jogadores) e quantos pontos a rodada vale.
+- **Prepare o desafio:** Para cada rodada, você define a "resposta secreta" no sistema (ex: "De Volta para o Futuro") e quantos pontos a rodada vale. O desafio em si (a imagem, a pergunta, etc.) você apresenta por fora (ex: compartilhando a tela).
 - **Valide as respostas:** Quando um jogador aperta o "BUZZ", você é notificado. O jogador responde verbalmente, e você simplesmente clica em "Correto" ou "Incorreto" no painel.
 - **Controle total:** Você acompanha o placar, o histórico de todas as rodadas e pode até remover um jogador, se necessário.
 
 #### Para os Jogadores
 
-- **Entre e jogue:** Você acessa a página do jogo, digita seu nome e espera a rodada começar.
-- **Seja rápido no gatilho:** Assim que o admin iniciar, o botão "BUZZ" ficará disponível. O primeiro a apertar ganha a chance de responder.
+- **Entre e jogue:** Você acessa a página do jogo, digita seu nome e espera o desafio ser apresentado.
+- **Seja rápido no gatilho:** Assim que o admin iniciar a rodada, o botão "BUZZ" ficará disponível. O primeiro a apertar ganha a chance de responder.
 - **Responda e marque pontos:** Se acertar, você ganha pontos baseados na sua velocidade. Se errar, fica bloqueado por 30 segundos sem poder dar um novo buzz.
 - **Acompanhe a competição:** O placar e o histórico de quem acertou, errou ou deixou o tempo acabar são visíveis para todos.
 
