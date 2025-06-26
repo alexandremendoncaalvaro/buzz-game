@@ -626,6 +626,9 @@
           if (round.cancelled) {
             li.textContent = `${round.timestamp} - Rodada cancelada`;
             li.style.color = "red";
+          } else if (round.timeout) {
+            li.textContent = `${round.timestamp} - Tempo esgotado [${round.secret}]`;
+            li.style.color = "orange";
           } else {
             const status = round.correct ? "✓" : "✗";
             const points = round.correct ? `(+${round.points}pts)` : "";

@@ -113,9 +113,25 @@ setInterval(() => {
     const remaining = Math.ceil((roundState.maxPoints * 1000 - elapsed) / 1000);
 
     if (remaining <= 0) {
+      // Registrar no histórico que a rodada terminou por timeout
+      roundHistory.push({
+        playerName: "Sistema",
+        correct: false,
+        points: 0,
+        secret: roundState.secret,
+        timestamp: new Date().toLocaleTimeString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+        }),
+        timeout: true,
+      });
+
       io.of("/admin").emit("roundTimeout");
       io.of("/game").emit("roundTimeout");
       resetRound();
+
+      // Atualizar histórico após timeout
+      io.of("/admin").emit("historyUpdate", roundHistory);
+      io.of("/game").emit("historyUpdate", roundHistory);
     } else {
       io.of("/admin").emit("roundTimer", { remaining });
     }
