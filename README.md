@@ -8,38 +8,37 @@ A beleza está na versatilidade. O "desafio" pode ser qualquer coisa que você c
 
 #### Exemplo de Jogo: "Adivinhe o Filme pela Cena"
 
-Uma maneira divertida que usamos foi a seguinte:
+Implementamos esta dinâmica com grande sucesso:
 
-- O **Admin** preparou uma apresentação de slides. Cada slide continha uma imagem (frame) de um filme ou série famosa.
-- Durante uma chamada de vídeo, o Admin compartilhava a tela e iniciava uma rodada no Buzz Game para cada slide, com duração de 20 segundos.
-- A "resposta secreta" no sistema era o nome do filme.
-- Os **Jogadores** viam a imagem e corriam para apertar o "BUZZ". O primeiro a apertar dava seu palpite.
-- O **Admin** validava a resposta, e o jogo seguia para o próximo slide/rodada. Foi super divertido!
+- **Preparação:** O admin criou uma apresentação com frames de filmes e séries famosas.
+- **Execução:** Durante videochamada, compartilhou a tela e rodou uma rodada de 20 segundos para cada slide.
+- **Mecânica:** A "resposta secreta" era o nome do filme/série. Jogadores viam a imagem e competiam pelo buzz.
+- **Resultado:** Diversão garantida e engajamento total da equipe!
 
 #### Para o Administrador (Host)
 
-- **Você comanda o jogo:** Através de uma página de admin, você inicia, pausa e encerra as rodadas.
-- **Prepare o desafio:** Para cada rodada, você define a "resposta secreta" no sistema (ex: "De Volta para o Futuro") e quantos pontos a rodada vale. O desafio em si (a imagem, a pergunta, etc.) você apresenta por fora (ex: compartilhando a tela).
-- **Valide as respostas:** Quando um jogador aperta o "BUZZ", você é notificado. O jogador responde verbalmente, e você simplesmente clica em "Correto" ou "Incorreto" no painel.
-- **Controle total:** Você acompanha o placar, o histórico de todas as rodadas e pode até remover um jogador, se necessário.
+- **Controle total:** Gerencie rodadas através do painel administrativo - inicie, pause e encerre quando necessário.
+- **Configure desafios:** Defina a "resposta secreta" e a pontuação máxima para cada rodada. O desafio em si (imagem, pergunta, vídeo) você apresenta externamente.
+- **Valide respostas:** Receba notificações instantâneas quando alguém der buzz e marque simplesmente "Correto" ou "Incorreto".
+- **Monitore tudo:** Acompanhe placar em tempo real, histórico completo e gerencie participantes.
 
 ![Painel do Administrador](assets/admin.png)
 
 #### Para os Jogadores
 
-- **Entre e jogue:** Você acessa a página do jogo, digita seu nome e espera o desafio ser apresentado.
+- **Acesso simples:** Entre no jogo informando apenas seu nome e aguarde o início dos desafios.
 
 ![Tela de Entrada do Jogador](assets/name.png)
 
-- **Seja rápido no gatilho:** Assim que o admin iniciar a rodada, o botão "BUZZ" ficará disponível. O primeiro a apertar ganha a chance de responder.
-- **Responda e marque pontos:** Se acertar, você ganha pontos baseados na sua velocidade. Se errar, fica bloqueado por 30 segundos sem poder dar um novo buzz.
-- **Acompanhe a competição:** O placar e o histórico de quem acertou, errou ou deixou o tempo acabar são visíveis para todos.
+- **Seja rápido:** Quando a rodada começar, o primeiro a apertar "BUZZ" ganha a chance de responder.
+- **Ganhe pontos:** Acerte para pontuar baseado na sua velocidade. Erre e fique bloqueado por 30 segundos.
+- **Acompanhe a disputa:** Veja o placar atualizado e o histórico completo das rodadas em tempo real.
 
 ![Tela Principal do Jogador](assets/player.png)
 
 ### 2. Visão Geral Técnica
 
-Uma aplicação de quiz em tempo real projetada para engajamento de equipes remotas. O administrador (host) controla as rodadas, definindo uma resposta e uma pontuação máxima. Os participantes competem para dar "buzz" e responder primeiro, com a pontuação sendo calculada com base na velocidade da resposta.
+Sistema de quiz em tempo real desenvolvido com Node.js, Express e Socket.IO. O administrador gerencia as rodadas enquanto os participantes competem para responder primeiro, com pontuação baseada na velocidade de resposta.
 
 ### 3. Infraestrutura
 
@@ -52,21 +51,18 @@ Uma aplicação de quiz em tempo real projetada para engajamento de equipes remo
 
 ### 4. Fluxo de Jogo
 
-1.  **Entrar no Jogo:** Um participante entra no jogo fornecendo um nome de usuário.
-2.  **Iniciar Rodada:** O admin inicia uma nova rodada, definindo a "resposta secreta" e a "pontuação máxima". Um timer regressivo começa para todos os jogadores.
-3.  **Buzz:** O primeiro jogador a pressionar o botão "BUZZ" tem a chance de responder. O timer da rodada é pausado e o botão de buzz é desabilitado para todos os outros.
-4.  **Validação do Admin:** O admin recebe a notificação de quem deu o buzz e deve validar a resposta (que é dada verbalmente ou por outro meio externo ao sistema).
-    - **Resposta Correta:** O admin clica em "Correto". O jogador recebe pontos, a rodada termina, o placar é atualizado e a resposta correta é revelada a todos.
-    - **Resposta Incorreta:** O admin clica em "Incorreto". O jogador não ganha pontos e fica bloqueado por 30 segundos, não podendo dar buzz novamente nesse período. A rodada continua, o timer é retomado e os outros jogadores podem dar buzz.
-5.  **Fim da Rodada:** Uma rodada pode terminar de três maneiras:
-    - Um jogador acerta a resposta.
-    - O tempo da rodada se esgota (`timeout`).
-    - O admin cancela a rodada manualmente.
-6.  **Histórico e Placar:** Todas as ações (acertos, erros, timeouts) são registradas no histórico, visível para todos. O placar é atualizado em tempo real.
+1.  **Entrada:** Participantes acessam o jogo e informam seus nomes.
+2.  **Início da Rodada:** O admin define a "resposta secreta" e a "pontuação máxima", iniciando o timer.
+3.  **Buzz:** O primeiro jogador a pressionar "BUZZ" ganha a chance de responder. O timer pausa automaticamente.
+4.  **Validação:** O admin escuta a resposta (verbal ou por outro meio) e marca como correta ou incorreta.
+    - **Acerto:** O jogador ganha pontos, a rodada termina e a resposta é revelada.
+    - **Erro:** O jogador fica bloqueado por 30 segundos, a rodada continua para os demais.
+5.  **Final da Rodada:** Termina quando alguém acerta, o tempo esgota ou o admin cancela manualmente.
+6.  **Acompanhamento:** Histórico completo e placar atualizado em tempo real para todos.
 
 ### 5. Diagramas de Fluxo
 
-Para uma visão mais visual, os diagramas abaixo ilustram o fluxo de comunicação e a lógica das rodadas.
+Os diagramas a seguir mostram como funciona a comunicação entre os componentes e a lógica das rodadas.
 
 #### Fluxo de Comunicação (Sequence Diagram)
 
@@ -209,7 +205,13 @@ flowchart TD
 | `removePlayer`    | Admin    | Servidor  | `{ playerId }`                                         | Remove um jogador do jogo.                                                                              |
 | `forceLogout`     | Servidor | Jogador   | -                                                      | Desconecta um jogador do jogo (usado após `removePlayer`).                                              |
 
-### 7. Setup e Deploy
+### 7. Regras de Pontuação e Bloqueio
+
+- **Cálculo de Pontos:** `Pontos = Máximo - SegundosDecorridos`. Quanto mais rápido, maior a pontuação.
+- **Bloqueio por Erro:** Jogador que erra fica 30 segundos sem poder usar o buzz, dando oportunidade aos demais.
+- **Privacidade:** A resposta secreta só é revelada ao final da rodada, e apenas se alguém acertar.
+
+### 8. Setup e Deploy
 
 #### Opção 1: Usando Docker (Localmente)
 
@@ -222,11 +224,11 @@ flowchart TD
 
 #### Opção 2: Deploy Gratuito com Glitch
 
-Para uma forma ainda mais simples de testar e hospedar a aplicação online gratuitamente, você pode usar o Glitch.
+Alternativa simples para testar e hospedar online gratuitamente:
 
-1.  **Faça um Fork:** Crie um "fork" deste repositório para a sua conta do GitHub.
-2.  **Importe no Glitch:** Acesse [glitch.com](https://glitch.com), crie um novo projeto e escolha "Import from GitHub". Cole a URL do seu repositório "forkado".
-3.  **Pronto!** O Glitch irá instalar as dependências e iniciar o servidor automaticamente. Você receberá uma URL pública (ex: `https://seu-projeto.glitch.me`) para acessar o jogo.
-4.  **Compartilhe os links:**
+1.  **Fork:** Crie um fork deste repositório na sua conta GitHub.
+2.  **Importe:** Acesse [glitch.com](https://glitch.com), crie novo projeto e escolha "Import from GitHub".
+3.  **Deploy:** O Glitch instala dependências e inicia automaticamente. Você recebe uma URL pública.
+4.  **Acesso:**
     - **Admin:** `https://seu-projeto.glitch.me/admin.html`
     - **Jogadores:** `https://seu-projeto.glitch.me/index.html`
