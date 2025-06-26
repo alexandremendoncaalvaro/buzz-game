@@ -36,7 +36,11 @@
         text-align: center;
         font-size: 2.5rem;
         margin-bottom: 2rem;
-        background: linear-gradient(135deg, rgb(135, 70, 248), rgb(125, 60, 238));
+        background: linear-gradient(
+          135deg,
+          rgb(135, 70, 248),
+          rgb(125, 60, 238)
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -211,6 +215,23 @@
         border: 1px solid #f85149;
       }
 
+      .remove-player {
+        background: #da3633;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: all 0.2s ease;
+      }
+
+      .remove-player:hover {
+        background: #c93026;
+        transform: translateY(-1px);
+      }
+
       .history-list li {
         background: #161b22;
         border: 1px solid #21262d;
@@ -350,9 +371,24 @@
 
           li.innerHTML = `
             <span><strong>${p.name}</strong> ${blockedInfo}</span>
-            <span>${p.score} pts ${p.ip ? `(${p.ip})` : ""}</span>
+            <span>
+              ${p.score} pts ${p.ip ? `(${p.ip})` : ""}
+              <button class="remove-player" data-player-id="${
+                p.playerId || p.id
+              }">🗑️ Remover</button>
+            </span>
           `;
           ul.appendChild(li);
+        });
+
+        // Adiciona event listeners para os botões de remover
+        document.querySelectorAll(".remove-player").forEach((button) => {
+          button.onclick = (e) => {
+            const playerId = e.target.getAttribute("data-player-id");
+            if (confirm("Tem certeza que deseja remover este jogador?")) {
+              socket.emit("removePlayer", { playerId });
+            }
+          };
         });
       });
 

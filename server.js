@@ -58,6 +58,7 @@ setInterval(() => {
       ip: p.ip,
       blocked: isBlocked,
       blockedTime: remainingTime,
+      playerId: p.playerId,
     };
   });
 
@@ -127,6 +128,7 @@ io.of("/admin").on("connection", (socket) => {
         ip: p.ip,
         blocked: isBlocked,
         blockedTime: remainingTime,
+        playerId: p.playerId,
       };
     });
 
@@ -183,11 +185,45 @@ io.of("/admin").on("connection", (socket) => {
     }
   });
 
+  socket.on("removePlayer", ({ playerId }) => {
+    const playerSocketId = Array.from(players.keys()).find((socketId) => {
+      const player = players.get(socketId);
+      return player && player.playerId === playerId;
+    });
+
+    if (playerSocketId) {
+      const player = players.get(playerSocketId);
+      players.delete(playerSocketId);
+
+      // Desconecta o jogador
+      const playerSocket = io.of("/game").sockets.get(playerSocketId);
+      if (playerSocket) {
+        playerSocket.emit("forceLogout");
+        playerSocket.disconnect(true);
+      }
+
+      const board = Array.from(players.values()).map((p) => ({
+        name: p.name,
+        score: p.score,
+      }));
+      const adminBoard = Array.from(players.values()).map((p) => ({
+        name: p.name,
+        score: p.score,
+        ip: p.ip,
+        playerId: p.playerId,
+      }));
+
+      io.of("/admin").emit("scoreUpdate", adminBoard);
+      io.of("/game").emit("scoreUpdate", board);
+    }
+  });
+
   // envia lista inicial de jogadores e placar
   const initialBoard = Array.from(players.values()).map((p) => ({
     name: p.name,
     score: p.score,
     ip: p.ip,
+    playerId: p.playerId,
   }));
   socket.emit("scoreUpdate", initialBoard);
   socket.emit("historyUpdate", roundHistory);
@@ -269,6 +305,7 @@ io.of("/game").on("connection", (socket) => {
       name: p.name,
       score: p.score,
       ip: p.ip,
+      playerId: p.playerId,
     }));
     io.of("/admin").emit("scoreUpdate", adminBoard);
     io.of("/game").emit("scoreUpdate", board);
@@ -281,6 +318,27 @@ io.of("/game").on("connection", (socket) => {
     );
     if (existingPlayer) {
       socket.emit("playerInfo", { name: existingPlayer.name });
+    }
+  });
+
+  socket.on("logout", () => {
+    const player = players.get(socket.id);
+    if (player) {
+      players.delete(socket.id);
+
+      const board = Array.from(players.values()).map((p) => ({
+        name: p.name,
+        score: p.score,
+      }));
+      const adminBoard = Array.from(players.values()).map((p) => ({
+        name: p.name,
+        score: p.score,
+        ip: p.ip,
+        playerId: p.playerId,
+      }));
+
+      io.of("/admin").emit("scoreUpdate", adminBoard);
+      io.of("/game").emit("scoreUpdate", board);
     }
   });
 
