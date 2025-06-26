@@ -64,7 +64,82 @@ Uma aplicação de quiz em tempo real projetada para engajamento de equipes remo
     - O admin cancela a rodada manualmente.
 6.  **Histórico e Placar:** Todas as ações (acertos, erros, timeouts) são registradas no histórico, visível para todos. O placar é atualizado em tempo real.
 
-### 5. Eventos & Payloads do Socket.IO
+### 5. Diagramas de Fluxo
+
+Para uma visão mais visual, os diagramas abaixo ilustram o fluxo de comunicação e a lógica das rodadas.
+
+#### Fluxo de Comunicação (Sequence Diagram)
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Servidor
+    participant Jogador
+
+    Admin->>Servidor: Acessa a página de admin
+    Jogador->>Servidor: Acessa a página do jogo
+    Jogador->>Servidor: Envia evento "join" com nome
+    Servidor-->>Jogador: Confirma entrada e atualiza placar
+
+    loop Rodadas do Jogo
+        Admin->>Servidor: Envia evento "startRound" (resposta, pontos)
+        Servidor-->>Todos: Emite "roundStarted"
+        Jogador->>Servidor: Envia evento "buzz"
+        Servidor-->>Admin: Emite "buzzed" (com nome do jogador)
+        Admin->>Servidor: Envia "answerResult" (correto/incorreto)
+        alt Resposta Correta
+            Servidor-->>Todos: Emite "answerProcessed", "scoreUpdate", "historyUpdate"
+            Servidor-->>Todos: Emite "roundReset"
+        else Resposta Incorreta
+            Servidor-->>Jogador: Emite "blocked"
+            Servidor-->>Todos: Emite "answerProcessed", "scoreUpdate", "historyUpdate"
+            Servidor-->>Admin: Emite "roundContinued"
+        end
+    end
+```
+
+#### Lógica de uma Rodada (Flowchart)
+
+```mermaid
+flowchart TD
+    subgraph Inicio["Início da Rodada"]
+        A[Admin define a resposta secreta e os pontos] --> B{Envia startRound}
+    end
+
+    subgraph Ativa["Rodada Ativa"]
+        B --> C[Servidor emite roundStarted para todos]
+        C --> D{Timer da rodada iniciado}
+        D --> E[Jogadores podem apertar o BUZZ]
+    end
+
+    subgraph Buzz["Evento de Buzz e Validação"]
+        E --> F{Jogador aperta o BUZZ}
+        F --> G[Servidor emite buzzed para o Admin e pausa o timer]
+        G --> H[Admin avalia a resposta verbal do jogador]
+        H --> I{Resposta Correta?}
+    end
+
+    subgraph Resultado
+        I -- Sim --> J[Rodada termina com sucesso]
+        J --> K[Jogador ganha pontos]
+        K --> L[Servidor emite answerProcessed, scoreUpdate, historyUpdate e roundReset]
+        L --> M[Fim da Rodada]
+
+        I -- Não --> N[Jogador erra]
+        N --> O[Jogador é bloqueado por 30s]
+        O --> P[Servidor emite answerProcessed, blocked, scoreUpdate e historyUpdate]
+        P --> Q[Rodada continua, timer é retomado]
+        Q --> E
+    end
+
+    subgraph Timeout
+        D -- Tempo esgotado --> R[Servidor emite roundTimeout]
+        R --> S[Servidor emite historyUpdate e roundReset]
+        S --> M
+    end
+```
+
+### 6. Eventos & Payloads do Socket.IO
 
 | Evento            | Origem   | Destino   | Payload                                                | Descrição                                                                                               |
 | ----------------- | -------- | --------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
@@ -86,7 +161,7 @@ Uma aplicação de quiz em tempo real projetada para engajamento de equipes remo
 | `removePlayer`    | Admin    | Servidor  | `{ playerId }`                                         | Remove um jogador do jogo.                                                                              |
 | `forceLogout`     | Servidor | Jogador   | -                                                      | Desconecta um jogador do jogo (usado após `removePlayer`).                                              |
 
-### 6. Setup e Deploy
+### 7. Setup e Deploy
 
 #### Opção 1: Usando Docker (Localmente)
 
