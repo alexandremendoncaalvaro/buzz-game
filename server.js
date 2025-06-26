@@ -20,27 +20,79 @@ let roundState = {
   blocked: new Map(),
   buzzPlayerId: null,
   buzzDelta: null,
+  paused: false,
+  pausedAt: null,
+  totalPausedTime: 0,
 };
 
+let roundTimer = null;
+
+function resetRound() {
+  roundState = {
+    secret: null,
+    start: null,
+    maxPoints: 200,
+    buzzed: false,
+    blocked: new Map(),
+    buzzPlayerId: null,
+    buzzDelta: null,
+    paused: false,
+    pausedAt: null,
+    totalPausedTime: 0,
+  };
+  io.of("/game").emit("roundReset");
+  io.of("/admin").emit("roundReset");
+}
+
 setInterval(() => {
+  const now = Date.now();
+  let needsUpdate = false;
+  const playersToUnblock = [];
+
   const adminBoard = Array.from(players.values()).map((p) => {
     const blockedAt = roundState.blocked.get(p.id) || 0;
-    const isBlocked = blockedAt > 0 && Date.now() - blockedAt < 30000;
+    const isBlocked = blockedAt > 0 && now - blockedAt < 30000;
     const remainingTime = isBlocked
-      ? Math.ceil((30000 - (Date.now() - blockedAt)) / 1000)
+      ? Math.ceil((30000 - (now - blockedAt)) / 1000)
       : 0;
+
+    // Se o jogador estava bloqueado mas agora deve ser desbloqueado
+    if (blockedAt > 0 && !isBlocked) {
+      roundState.blocked.delete(p.id);
+      playersToUnblock.push(p.id);
+      needsUpdate = true;
+    }
 
     return {
       name: p.name,
       score: p.score,
-      blocked: isBlocked,
-      blockedTime: remainingTime,
+      blocked: isBlocked && remainingTime > 0,
+      blockedTime: remainingTime > 0 ? remainingTime : 0,
       playerId: p.playerId,
     };
   });
 
-  if (adminBoard.some((p) => p.blocked)) {
+  // Notificar jogadores desbloqueados
+  playersToUnblock.forEach((playerId) => {
+    io.of("/game").to(playerId).emit("unblocked");
+  });
+
+  if (adminBoard.some((p) => p.blocked) || needsUpdate) {
     io.of("/admin").emit("scoreUpdate", adminBoard);
+  }
+
+  // Timer da rodada
+  if (roundState.start && !roundState.paused) {
+    const elapsed = now - roundState.start - roundState.totalPausedTime;
+    const remaining = Math.ceil((roundState.maxPoints * 1000 - elapsed) / 1000);
+
+    if (remaining <= 0) {
+      io.of("/admin").emit("roundTimeout");
+      io.of("/game").emit("roundTimeout");
+      resetRound();
+    } else {
+      io.of("/admin").emit("roundTimer", { remaining });
+    }
   }
 }, 1000);
 
@@ -52,6 +104,9 @@ io.of("/admin").on("connection", (socket) => {
     roundState.maxPoints = maxPoints || 200;
     roundState.buzzed = false;
     roundState.blocked.clear();
+    roundState.paused = false;
+    roundState.pausedAt = null;
+    roundState.totalPausedTime = 0;
     io.of("/game").emit("roundStarted");
     io.of("/admin").emit("roundStarted", {
       secret: secretAnswer,
@@ -62,6 +117,14 @@ io.of("/admin").on("connection", (socket) => {
   socket.on("answerResult", ({ playerId, correct }) => {
     const player = players.get(playerId);
     if (!player) return;
+
+    // Retomar o timer que foi pausado durante o buzz
+    if (roundState.paused) {
+      roundState.totalPausedTime += Date.now() - roundState.pausedAt;
+      roundState.paused = false;
+      roundState.pausedAt = null;
+    }
+
     let earnedPoints = 0;
     if (correct && roundState.buzzDelta !== null) {
       earnedPoints = Math.max(
@@ -71,6 +134,7 @@ io.of("/admin").on("connection", (socket) => {
       player.score += earnedPoints;
     }
 
+    // Adicionar ao histórico SEMPRE, independente de certo ou errado
     roundHistory.push({
       playerName: player.name,
       correct,
@@ -79,15 +143,35 @@ io.of("/admin").on("connection", (socket) => {
       timestamp: new Date().toLocaleTimeString(),
     });
 
-    // Só bloqueia se a resposta estiver incorreta
-    if (!correct) {
-      const blockTime = Date.now();
-      roundState.blocked.set(playerId, blockTime);
-      io.of("/game")
-        .to(playerId)
-        .emit("blocked", { duration: 30000, startTime: blockTime });
+    // Emitir answerProcessed primeiro
+    io.of("/game").emit("answerProcessed", {
+      correct,
+      playerName: player.name,
+      points: earnedPoints,
+    });
+
+    // Atualizar histórico imediatamente após resposta
+    io.of("/admin").emit("historyUpdate", roundHistory);
+    io.of("/game").emit("historyUpdate", roundHistory);
+
+    // Se a resposta estiver correta, encerra a rodada
+    if (correct) {
+      resetRound();
+      return;
     }
 
+    // Se incorreta, apenas bloqueia o jogador e continua a rodada
+    const blockTime = Date.now();
+    roundState.blocked.set(player.id, blockTime);
+    roundState.buzzed = false;
+    roundState.buzzPlayerId = null;
+    roundState.buzzDelta = null;
+
+    io.of("/game")
+      .to(playerId) // Usar o playerId que é o socket.id
+      .emit("blocked", { duration: 30000, startTime: blockTime });
+
+    // Atualizar scores
     const board = Array.from(players.values()).map((p) => ({
       name: p.name,
       score: p.score,
@@ -110,26 +194,9 @@ io.of("/admin").on("connection", (socket) => {
 
     io.of("/admin").emit("scoreUpdate", adminBoard);
     io.of("/game").emit("scoreUpdate", board);
-    io.of("/admin").emit("historyUpdate", roundHistory);
-    io.of("/game").emit("historyUpdate", roundHistory);
 
-    io.of("/game").emit("answerProcessed", {
-      correct,
-      playerName: player.name,
-      points: earnedPoints,
-    });
-
-    roundState = {
-      secret: null,
-      start: null,
-      maxPoints: 200,
-      buzzed: false,
-      blocked: new Map(),
-      buzzPlayerId: null,
-      buzzDelta: null,
-    };
-    io.of("/game").emit("roundReset");
-    io.of("/admin").emit("roundReset");
+    // Reseta o estado do buzz para permitir novos buzzes
+    io.of("/admin").emit("roundContinued");
   });
 
   socket.on("cancelRound", () => {
@@ -143,18 +210,7 @@ io.of("/admin").on("connection", (socket) => {
         cancelled: true,
       });
 
-      roundState = {
-        secret: null,
-        start: null,
-        maxPoints: 200,
-        buzzed: false,
-        blocked: new Map(),
-        buzzPlayerId: null,
-        buzzDelta: null,
-      };
-
-      io.of("/game").emit("roundReset");
-      io.of("/admin").emit("roundReset");
+      resetRound();
       io.of("/admin").emit("historyUpdate", roundHistory);
       io.of("/game").emit("historyUpdate", roundHistory);
     }
@@ -274,13 +330,21 @@ io.of("/game").on("connection", (socket) => {
   socket.on("buzz", () => {
     const now = Date.now();
     if (roundState.buzzed) return;
-    const blockedAt = roundState.blocked.get(socket.id) || 0;
+    if (!roundState.start) return;
+
+    const player = players.get(socket.id);
+    if (!player) return;
+
+    const blockedAt = roundState.blocked.get(player.id) || 0;
     if (now - blockedAt < 30000) return;
 
     roundState.buzzed = true;
     roundState.buzzPlayerId = socket.id;
-    roundState.buzzDelta = now - roundState.start;
-    const player = players.get(socket.id);
+    roundState.buzzDelta = now - roundState.start - roundState.totalPausedTime;
+
+    roundState.paused = true;
+    roundState.pausedAt = now;
+
     io.of("/game").emit("buzzed", { name: player.name });
     io.of("/admin").emit("buzzed", { playerId: socket.id, name: player.name });
   });

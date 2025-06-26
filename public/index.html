@@ -367,10 +367,12 @@
         if (
           e.code === "Space" &&
           document.getElementById("game").style.display !== "none" &&
-          document.getElementById("buzzContainer").style.display !== "none"
+          document.getElementById("buzzContainer").style.display !== "none" &&
+          !document.getElementById("buzz").disabled &&
+          document.getElementById("blockedMessage").style.display === "none"
         ) {
           e.preventDefault();
-          socket.emit("buzz");
+          document.getElementById("buzz").click();
         }
       });
 
@@ -387,9 +389,16 @@
       });
 
       socket.on("buzzed", ({ name }) => {
-        alert(name + " buzzed!");
-        document.getElementById("status").textContent =
-          "Aguardando validação...";
+        if (name === document.getElementById("playerName").textContent) {
+          document.getElementById("status").textContent =
+            "Você fez buzz! Aguarde validação...";
+          document.getElementById("buzz").disabled = true;
+        } else {
+          document.getElementById(
+            "status"
+          ).textContent = `${name} fez buzz! Aguarde validação...`;
+          document.getElementById("buzz").disabled = true;
+        }
       });
 
       let blockTimer = null;
@@ -424,6 +433,43 @@
           ? `${playerName} acertou! (+${points}pts)`
           : `${playerName} errou.`;
         document.getElementById("status").textContent = message;
+
+        // Se a resposta foi correta, a rodada vai encerrar
+        if (correct) {
+          document.getElementById("buzz").disabled = true;
+          document.getElementById("buzzContainer").style.display = "none";
+        } else {
+          // Se foi incorreta, apenas continua a rodada
+          // O botão só será habilitado se o jogador não estiver bloqueado
+          const myName = document.getElementById("playerName").textContent;
+          if (
+            playerName !== myName &&
+            document.getElementById("blockedMessage").style.display === "none"
+          ) {
+            document.getElementById("buzz").disabled = false;
+            document.getElementById("status").textContent =
+              message + " Você pode tentar!";
+          }
+        }
+      });
+
+      socket.on("unblocked", () => {
+        if (blockTimer) {
+          clearInterval(blockTimer);
+          blockTimer = null;
+        }
+        document.getElementById("blockedMessage").style.display = "none";
+
+        // Só habilita o botão se há uma rodada ativa e o container está visível
+        if (
+          document.getElementById("buzzContainer").style.display !== "none" &&
+          document.getElementById("status").textContent !==
+            "Aguardando próxima rodada..."
+        ) {
+          document.getElementById("buzz").disabled = false;
+          document.getElementById("status").textContent =
+            "Você pode tentar novamente!";
+        }
       });
 
       socket.on("roundReset", () => {
@@ -436,6 +482,12 @@
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
           "Aguardando próxima rodada...";
+      });
+
+      socket.on("roundTimeout", () => {
+        document.getElementById("status").textContent =
+          "Tempo da rodada esgotado!";
+        document.getElementById("buzz").disabled = true;
       });
 
       socket.on("scoreUpdate", (board) => {

@@ -299,6 +299,15 @@
       <div id="roundStatus" class="round-status" style="display: none">
         <h3>🎯 Rodada Ativa</h3>
         <p id="currentRound"></p>
+        <p
+          id="roundTimer"
+          style="
+            font-size: 1.5rem;
+            color: #f2cc60;
+            font-weight: bold;
+            margin: 1rem 0;
+          "
+        ></p>
       </div>
 
       <div id="buzzSection" class="buzz-section" style="display: none">
@@ -431,6 +440,22 @@
         document.getElementById("buzzSection").style.display = "none";
         document.getElementById("start").style.display = "inline";
         document.getElementById("cancel").style.display = "none";
+        document.getElementById("roundTimer").textContent = "";
+      });
+
+      socket.on("roundTimer", ({ remaining }) => {
+        document.getElementById(
+          "roundTimer"
+        ).textContent = `⏱️ Tempo restante: ${remaining}s`;
+      });
+
+      socket.on("roundTimeout", () => {
+        alert("Tempo da rodada esgotado!");
+      });
+
+      socket.on("roundContinued", () => {
+        document.getElementById("buzzSection").style.display = "none";
+        currentBuzzPlayer = null;
       });
     </script>
   </body>
