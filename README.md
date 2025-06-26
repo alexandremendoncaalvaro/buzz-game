@@ -71,6 +71,24 @@ Para uma visão mais visual, os diagramas abaixo ilustram o fluxo de comunicaç�
 #### Fluxo de Comunicação (Sequence Diagram)
 
 ```mermaid
+%%{init: {
+  'theme': 'neutral',
+  'themeVariables': {
+    'primaryColor': '#3b82f6',
+    'primaryTextColor': '#ffffff',
+    'primaryBorderColor': '#1e40af',
+    'lineColor': '#6b7280',
+    'secondaryColor': '#10b981',
+    'tertiaryColor': '#8b5cf6',
+    'background': 'transparent',
+    'mainBkg': '#3b82f6',
+    'secondBkg': '#10b981',
+    'tertiaryBkg': '#8b5cf6',
+    'actorBkg': '#374151',
+    'actorBorder': '#9ca3af',
+    'actorTextColor': '#f9fafb'
+  }
+}}%%
 sequenceDiagram
     participant Admin
     participant Servidor
@@ -101,25 +119,43 @@ sequenceDiagram
 #### Lógica de uma Rodada (Flowchart)
 
 ```mermaid
+%%{init: {
+  'theme': 'neutral',
+  'themeVariables': {
+    'primaryColor': '#3b82f6',
+    'primaryTextColor': '#ffffff',
+    'primaryBorderColor': '#1e40af',
+    'lineColor': '#6b7280',
+    'secondaryColor': '#10b981',
+    'tertiaryColor': '#8b5cf6',
+    'background': 'transparent',
+    'mainBkg': '#3b82f6',
+    'secondBkg': '#10b981',
+    'tertiaryBkg': '#8b5cf6',
+    'clusterBkg': 'transparent',
+    'clusterBorder': '#6b7280',
+    'edgeLabelBackground': 'transparent'
+  }
+}}%%
 flowchart TD
-    subgraph Inicio["Início da Rodada"]
+    subgraph Inicio["🎯 Início da Rodada"]
         A[Admin define a resposta secreta e os pontos] --> B{Envia startRound}
     end
 
-    subgraph Ativa["Rodada Ativa"]
+    subgraph Ativa["⏱️ Rodada Ativa"]
         B --> C[Servidor emite roundStarted para todos]
         C --> D{Timer da rodada iniciado}
         D --> E[Jogadores podem apertar o BUZZ]
     end
 
-    subgraph Buzz["Evento de Buzz e Validação"]
+    subgraph Buzz["🔔 Evento de Buzz e Validação"]
         E --> F{Jogador aperta o BUZZ}
         F --> G[Servidor emite buzzed para o Admin e pausa o timer]
         G --> H[Admin avalia a resposta verbal do jogador]
         H --> I{Resposta Correta?}
     end
 
-    subgraph Resultado
+    subgraph Resultado["✅ Resultado"]
         I -- Sim --> J[Rodada termina com sucesso]
         J --> K[Jogador ganha pontos]
         K --> L[Servidor emite answerProcessed, scoreUpdate, historyUpdate e roundReset]
@@ -132,11 +168,23 @@ flowchart TD
         Q --> E
     end
 
-    subgraph Timeout
+    subgraph Timeout["⏰ Timeout"]
         D -- Tempo esgotado --> R[Servidor emite roundTimeout]
         R --> S[Servidor emite historyUpdate e roundReset]
         S --> M
     end
+
+    classDef startNode fill:#3b82f6,stroke:#1e40af,stroke-width:2px,color:#ffffff
+    classDef processNode fill:#10b981,stroke:#059669,stroke-width:2px,color:#ffffff
+    classDef decisionNode fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#ffffff
+    classDef endNode fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#ffffff
+    classDef errorNode fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#ffffff
+
+    class A,B startNode
+    class C,G,J,K,L,P,R,S processNode
+    class D,F,H,I decisionNode
+    class M endNode
+    class N,O errorNode
 ```
 
 ### 6. Eventos & Payloads do Socket.IO
