@@ -287,7 +287,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>Buzz Games</h1>
+      <h1 id="gameTitle">Buzz Games</h1>
 
       <div id="login" class="card">
         <h3>Entre no Jogo</h3>
@@ -338,9 +338,32 @@
       </div>
     </div>
     <script>
-      const socket = io("/game");
       const urlParams = new URLSearchParams(window.location.search);
+      const gameToken = urlParams.get("game");
       const playerId = urlParams.get("id");
+
+      if (!gameToken) {
+        alert("Token de jogo inválido. Redirecionando...");
+        window.location.href = "/create.html";
+      }
+
+      // Carregar informações da sala antes mesmo do login
+      async function loadGameInfo() {
+        try {
+          const response = await fetch(`/game-info/${gameToken}`);
+          if (response.ok) {
+            const { roomTitle } = await response.json();
+            document.getElementById("gameTitle").textContent = roomTitle;
+            document.title = roomTitle;
+          }
+        } catch (error) {
+          console.error("Erro ao carregar informações da sala:", error);
+        }
+      }
+
+      loadGameInfo();
+
+      const socket = io();
 
       if (playerId) {
         socket.emit("getPlayerInfo", { playerId });
@@ -353,18 +376,28 @@
       });
 
       function joinGame(name, id) {
-        socket.emit("join", { name, playerId: id });
+        socket.emit("player-join", { gameToken, name, playerId: id });
         document.getElementById("login").style.display = "none";
         document.getElementById("game").style.display = "block";
         document.getElementById("playerName").textContent = `Jogador: ${name}`;
       }
 
-      socket.on("joined", ({ playerId }) => {
+      socket.on("joined", ({ playerId, roomTitle }) => {
+        if (roomTitle) {
+          document.getElementById("gameTitle").textContent = roomTitle;
+          document.title = roomTitle;
+        }
+
         if (!urlParams.get("id")) {
           const name = document.getElementById("name").value.trim();
-          const newUrl = `${window.location.pathname}?id=${playerId}`;
+          const newUrl = `${window.location.pathname}?game=${gameToken}&id=${playerId}`;
           window.history.replaceState({}, "", newUrl);
         }
+      });
+
+      socket.on("error", ({ message }) => {
+        alert(`Erro: ${message}`);
+        window.location.href = "/create.html";
       });
 
       document.getElementById("join").onclick = () => {
@@ -384,7 +417,8 @@
         document.getElementById("login").style.display = "block";
         document.getElementById("game").style.display = "none";
         document.getElementById("name").value = "";
-        window.history.replaceState({}, "", window.location.pathname);
+        const newUrl = `${window.location.pathname}?game=${gameToken}`;
+        window.history.replaceState({}, "", newUrl);
         location.reload();
       };
 

@@ -7,224 +7,353 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static("public"));
+app.use(express.json());
 
-// Estado do jogo
-const players = new Map();
-const roundHistory = [];
+const gameRooms = new Map();
 
-let roundState = {
-  secret: null,
-  start: null,
-  maxPoints: 200,
-  buzzed: false,
-  blocked: new Map(),
-  buzzPlayerId: null,
-  buzzDelta: null,
-  paused: false,
-  pausedAt: null,
-  totalPausedTime: 0,
-};
+class GameRoom {
+  constructor(adminToken, gameToken, roomTitle = "Buzz Game") {
+    this.adminToken = adminToken;
+    this.gameToken = gameToken;
+    this.roomTitle = roomTitle;
+    this.players = new Map();
+    this.roundHistory = [];
+    this.roundState = {
+      secret: null,
+      start: null,
+      maxPoints: 200,
+      buzzed: false,
+      blocked: new Map(),
+      buzzPlayerId: null,
+      buzzDelta: null,
+      paused: false,
+      pausedAt: null,
+      totalPausedTime: 0,
+    };
+  }
+
+  resetRound() {
+    this.roundState = {
+      secret: null,
+      start: null,
+      maxPoints: 200,
+      buzzed: false,
+      blocked: new Map(),
+      buzzPlayerId: null,
+      buzzDelta: null,
+      paused: false,
+      pausedAt: null,
+      totalPausedTime: 0,
+    };
+
+    const adminBoard = Array.from(this.players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+      blocked: false,
+      blockedTime: 0,
+      playerId: p.playerId,
+    }));
+
+    const playerBoard = Array.from(this.players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+    }));
+
+    io.to(`admin-${this.adminToken}`).emit("scoreUpdate", adminBoard);
+    io.to(`game-${this.gameToken}`).emit("scoreUpdate", playerBoard);
+    io.to(`game-${this.gameToken}`).emit("roundReset");
+    io.to(`admin-${this.adminToken}`).emit("roundReset");
+  }
+}
 
 let roundTimer = null;
 
-function resetRound() {
-  roundState = {
-    secret: null,
-    start: null,
-    maxPoints: 200,
-    buzzed: false,
-    blocked: new Map(),
-    buzzPlayerId: null,
-    buzzDelta: null,
-    paused: false,
-    pausedAt: null,
-    totalPausedTime: 0,
-  };
-
-  // Atualizar o board para admin (com informações completas)
-  const adminBoard = Array.from(players.values()).map((p) => ({
-    name: p.name,
-    score: p.score,
-    blocked: false,
-    blockedTime: 0,
-    playerId: p.playerId,
-  }));
-
-  // Atualizar o board para jogadores (versão simplificada)
-  const playerBoard = Array.from(players.values()).map((p) => ({
-    name: p.name,
-    score: p.score,
-  }));
-
-  io.of("/admin").emit("scoreUpdate", adminBoard);
-  io.of("/game").emit("scoreUpdate", playerBoard);
-  io.of("/game").emit("roundReset");
-  io.of("/admin").emit("roundReset");
+function getGameRoom(adminToken, gameToken) {
+  if (adminToken) {
+    return Array.from(gameRooms.values()).find(
+      (room) => room.adminToken === adminToken
+    );
+  }
+  if (gameToken) {
+    return Array.from(gameRooms.values()).find(
+      (room) => room.gameToken === gameToken
+    );
+  }
+  return null;
 }
+
+app.post("/create-game", (req, res) => {
+  const adminToken = `admin-${Math.random().toString(36).substr(2, 12)}`;
+  const gameToken = `game-${Math.random().toString(36).substr(2, 8)}`;
+  const roomTitle = req.body?.title || "Buzz Game";
+
+  const room = new GameRoom(adminToken, gameToken, roomTitle);
+  gameRooms.set(adminToken, room);
+
+  res.json({ adminToken, gameToken, roomTitle });
+});
+
+app.get("/game-info/:gameToken", (req, res) => {
+  const { gameToken } = req.params;
+  const room = getGameRoom(null, gameToken);
+
+  if (!room) {
+    return res.status(404).json({ error: "Sala não encontrada" });
+  }
+
+  res.json({ roomTitle: room.roomTitle });
+});
 
 setInterval(() => {
   const now = Date.now();
-  let needsUpdate = false;
-  const playersToUnblock = [];
 
-  // Só processar bloqueios se há rodada ativa ou se há jogadores bloqueados
-  const hasActiveRound = roundState.start !== null;
-  const hasBlockedPlayers = roundState.blocked.size > 0;
+  gameRooms.forEach((room) => {
+    let needsUpdate = false;
+    const playersToUnblock = [];
 
-  if (!hasActiveRound && !hasBlockedPlayers) {
-    return; // Não fazer nada se não há rodada ativa nem jogadores bloqueados
-  }
+    const hasActiveRound = room.roundState.start !== null;
+    const hasBlockedPlayers = room.roundState.blocked.size > 0;
 
-  const adminBoard = Array.from(players.values()).map((p) => {
-    const blockedAt = roundState.blocked.get(p.id) || 0;
-    const isBlocked = blockedAt > 0 && now - blockedAt < 30000;
-    const remainingTime = isBlocked
-      ? Math.ceil((30000 - (now - blockedAt)) / 1000)
-      : 0;
-
-    // Se o jogador estava bloqueado mas agora deve ser desbloqueado
-    if (blockedAt > 0 && !isBlocked) {
-      roundState.blocked.delete(p.id);
-      playersToUnblock.push(p.id);
-      needsUpdate = true;
+    if (!hasActiveRound && !hasBlockedPlayers) {
+      return;
     }
 
-    return {
-      name: p.name,
-      score: p.score,
-      blocked: isBlocked && remainingTime > 0,
-      blockedTime: remainingTime > 0 ? remainingTime : 0,
-      playerId: p.playerId,
-    };
-  });
+    const adminBoard = Array.from(room.players.values()).map((p) => {
+      const blockedAt = room.roundState.blocked.get(p.id) || 0;
+      const isBlocked = blockedAt > 0 && now - blockedAt < 30000;
+      const remainingTime = isBlocked
+        ? Math.ceil((30000 - (now - blockedAt)) / 1000)
+        : 0;
 
-  // Notificar jogadores desbloqueados
-  playersToUnblock.forEach((playerId) => {
-    io.of("/game").to(playerId).emit("unblocked");
-  });
+      if (blockedAt > 0 && !isBlocked) {
+        room.roundState.blocked.delete(p.id);
+        playersToUnblock.push(p.id);
+        needsUpdate = true;
+      }
 
-  if (adminBoard.some((p) => p.blocked) || needsUpdate) {
-    io.of("/admin").emit("scoreUpdate", adminBoard);
-  }
+      return {
+        name: p.name,
+        score: p.score,
+        blocked: isBlocked && remainingTime > 0,
+        blockedTime: remainingTime > 0 ? remainingTime : 0,
+        playerId: p.playerId,
+      };
+    });
 
-  // Timer da rodada (apenas se há rodada ativa)
-  if (roundState.start && !roundState.paused) {
-    const elapsed = now - roundState.start - roundState.totalPausedTime;
-    const remaining = Math.ceil((roundState.maxPoints * 1000 - elapsed) / 1000);
+    playersToUnblock.forEach((playerId) => {
+      io.to(playerId).emit("unblocked");
+    });
 
-    if (remaining <= 0) {
-      // Registrar no histórico que a rodada terminou por timeout
-      roundHistory.push({
-        playerName: "Sistema",
-        correct: false,
-        points: 0,
-        secret: roundState.secret,
-        timestamp: new Date().toLocaleTimeString("pt-BR", {
-          timeZone: "America/Sao_Paulo",
-        }),
-        timeout: true,
-      });
-
-      io.of("/admin").emit("roundTimeout");
-      io.of("/game").emit("roundTimeout");
-      resetRound();
-
-      // Atualizar histórico após timeout
-      io.of("/admin").emit("historyUpdate", roundHistory);
-      io.of("/game").emit("historyUpdate", roundHistory);
-    } else {
-      io.of("/admin").emit("roundTimer", { remaining });
+    if (adminBoard.some((p) => p.blocked) || needsUpdate) {
+      io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
     }
-  }
+
+    if (room.roundState.start && !room.roundState.paused) {
+      const elapsed =
+        now - room.roundState.start - room.roundState.totalPausedTime;
+      const remaining = Math.ceil(
+        (room.roundState.maxPoints * 1000 - elapsed) / 1000
+      );
+
+      if (remaining <= 0) {
+        room.roundHistory.push({
+          playerName: "Sistema",
+          correct: false,
+          points: 0,
+          secret: room.roundState.secret,
+          timestamp: new Date().toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo",
+          }),
+          timeout: true,
+        });
+
+        io.to(`admin-${room.adminToken}`).emit("roundTimeout");
+        io.to(`game-${room.gameToken}`).emit("roundTimeout");
+        room.resetRound();
+
+        io.to(`admin-${room.adminToken}`).emit(
+          "historyUpdate",
+          room.roundHistory
+        );
+        io.to(`game-${room.gameToken}`).emit(
+          "historyUpdate",
+          room.roundHistory
+        );
+      } else {
+        io.to(`admin-${room.adminToken}`).emit("roundTimer", { remaining });
+      }
+    }
+  });
 }, 1000);
 
-// Admin (host) namespace
-io.of("/admin").on("connection", (socket) => {
+io.on("connection", (socket) => {
+  socket.on("admin-join", ({ adminToken }) => {
+    const room = getGameRoom(adminToken);
+    if (!room) {
+      socket.emit("error", { message: "Sala não encontrada" });
+      return;
+    }
+
+    socket.join(`admin-${adminToken}`);
+    socket.room = room;
+    socket.isAdmin = true;
+
+    const initialBoard = Array.from(room.players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+      playerId: p.playerId,
+    }));
+
+    socket.emit("joined", {
+      gameToken: room.gameToken,
+      roomTitle: room.roomTitle,
+    });
+    socket.emit("scoreUpdate", initialBoard);
+    socket.emit("historyUpdate", room.roundHistory);
+  });
+
+  socket.on("player-join", ({ gameToken, name, playerId }) => {
+    const room = getGameRoom(null, gameToken);
+    if (!room) {
+      socket.emit("error", { message: "Sala não encontrada" });
+      return;
+    }
+
+    let finalPlayerId = playerId;
+    let playerScore = 0;
+
+    if (playerId) {
+      const existingPlayer = Array.from(room.players.values()).find(
+        (p) => p.playerId === playerId
+      );
+      if (existingPlayer) {
+        playerScore = existingPlayer.score;
+        room.players.delete(existingPlayer.id);
+      }
+    }
+
+    if (!finalPlayerId) {
+      finalPlayerId =
+        Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    room.players.set(socket.id, {
+      id: socket.id,
+      playerId: finalPlayerId,
+      name,
+      score: playerScore,
+    });
+
+    socket.join(`game-${gameToken}`);
+    socket.room = room;
+    socket.isPlayer = true;
+
+    socket.emit("joined", {
+      socketId: socket.id,
+      playerId: finalPlayerId,
+      roomTitle: room.roomTitle,
+    });
+
+    const board = Array.from(room.players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+    }));
+    const adminBoard = Array.from(room.players.values()).map((p) => ({
+      name: p.name,
+      score: p.score,
+      playerId: p.playerId,
+    }));
+
+    io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
+    io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
+    socket.emit("historyUpdate", room.roundHistory);
+  });
   socket.on("startRound", ({ secretAnswer, maxPoints }) => {
-    roundState.secret = secretAnswer;
-    roundState.start = Date.now();
-    roundState.maxPoints = maxPoints || 200;
-    roundState.buzzed = false;
-    roundState.blocked.clear();
-    roundState.paused = false;
-    roundState.pausedAt = null;
-    roundState.totalPausedTime = 0;
-    io.of("/game").emit("roundStarted");
-    io.of("/admin").emit("roundStarted", {
+    if (!socket.isAdmin || !socket.room) return;
+
+    const room = socket.room;
+    room.roundState.secret = secretAnswer;
+    room.roundState.start = Date.now();
+    room.roundState.maxPoints = maxPoints || 200;
+    room.roundState.buzzed = false;
+    room.roundState.blocked.clear();
+    room.roundState.paused = false;
+    room.roundState.pausedAt = null;
+    room.roundState.totalPausedTime = 0;
+
+    io.to(`game-${room.gameToken}`).emit("roundStarted");
+    io.to(`admin-${room.adminToken}`).emit("roundStarted", {
       secret: secretAnswer,
-      maxPoints: roundState.maxPoints,
+      maxPoints: room.roundState.maxPoints,
     });
   });
 
   socket.on("answerResult", ({ playerId, correct }) => {
-    const player = players.get(playerId);
+    if (!socket.isAdmin || !socket.room) return;
+
+    const room = socket.room;
+    const player = room.players.get(playerId);
     if (!player) return;
 
-    // Retomar o timer que foi pausado durante o buzz
-    if (roundState.paused) {
-      roundState.totalPausedTime += Date.now() - roundState.pausedAt;
-      roundState.paused = false;
-      roundState.pausedAt = null;
+    if (room.roundState.paused) {
+      room.roundState.totalPausedTime += Date.now() - room.roundState.pausedAt;
+      room.roundState.paused = false;
+      room.roundState.pausedAt = null;
     }
 
     let earnedPoints = 0;
-    if (correct && roundState.buzzDelta !== null) {
+    if (correct && room.roundState.buzzDelta !== null) {
       earnedPoints = Math.max(
         0,
-        roundState.maxPoints - Math.floor(roundState.buzzDelta / 1000)
+        room.roundState.maxPoints - Math.floor(room.roundState.buzzDelta / 1000)
       );
       player.score += earnedPoints;
     }
 
-    // Adicionar ao histórico SEMPRE, independente de certo ou errado
-    roundHistory.push({
+    room.roundHistory.push({
       playerName: player.name,
       correct,
       points: earnedPoints,
-      secret: roundState.secret,
+      secret: room.roundState.secret,
       timestamp: new Date().toLocaleTimeString("pt-BR", {
         timeZone: "America/Sao_Paulo",
       }),
     });
 
-    // Emitir answerProcessed primeiro
-    io.of("/game").emit("answerProcessed", {
+    io.to(`game-${room.gameToken}`).emit("answerProcessed", {
       correct,
       playerName: player.name,
       points: earnedPoints,
-      secret: correct ? roundState.secret : null, // Só mostra resposta se acertou
+      secret: correct ? room.roundState.secret : null,
     });
 
-    // Atualizar histórico imediatamente após resposta
-    io.of("/admin").emit("historyUpdate", roundHistory);
-    io.of("/game").emit("historyUpdate", roundHistory); // Se a resposta estiver correta, encerra a rodada
-    if (correct) {
-      resetRound();
+    io.to(`admin-${room.adminToken}`).emit("historyUpdate", room.roundHistory);
+    io.to(`game-${room.gameToken}`).emit("historyUpdate", room.roundHistory);
 
-      // Re-emitir histórico após reset para garantir sincronização
-      io.of("/admin").emit("historyUpdate", roundHistory);
-      io.of("/game").emit("historyUpdate", roundHistory);
+    if (correct) {
+      room.resetRound();
+      io.to(`admin-${room.adminToken}`).emit(
+        "historyUpdate",
+        room.roundHistory
+      );
+      io.to(`game-${room.gameToken}`).emit("historyUpdate", room.roundHistory);
       return;
     }
 
-    // Se incorreta, apenas bloqueia o jogador e continua a rodada
     const blockTime = Date.now();
-    roundState.blocked.set(player.id, blockTime);
-    roundState.buzzed = false;
-    roundState.buzzPlayerId = null;
-    roundState.buzzDelta = null;
+    room.roundState.blocked.set(player.id, blockTime);
+    room.roundState.buzzed = false;
+    room.roundState.buzzPlayerId = null;
+    room.roundState.buzzDelta = null;
 
-    io.of("/game")
-      .to(playerId) // Usar o playerId que é o socket.id
-      .emit("blocked", { duration: 30000, startTime: blockTime });
+    io.to(playerId).emit("blocked", { duration: 30000, startTime: blockTime });
 
-    // Atualizar scores
-    const board = Array.from(players.values()).map((p) => ({
+    const board = Array.from(room.players.values()).map((p) => ({
       name: p.name,
       score: p.score,
     }));
-    const adminBoard = Array.from(players.values()).map((p) => {
-      const blockedAt = roundState.blocked.get(p.id) || 0;
+    const adminBoard = Array.from(room.players.values()).map((p) => {
+      const blockedAt = room.roundState.blocked.get(p.id) || 0;
       const isBlocked = blockedAt > 0 && Date.now() - blockedAt < 30000;
       const remainingTime = isBlocked
         ? Math.ceil((30000 - (Date.now() - blockedAt)) / 1000)
@@ -239,116 +368,73 @@ io.of("/admin").on("connection", (socket) => {
       };
     });
 
-    io.of("/admin").emit("scoreUpdate", adminBoard);
-    io.of("/game").emit("scoreUpdate", board);
-
-    // Reseta o estado do buzz para permitir novos buzzes
-    io.of("/admin").emit("roundContinued");
+    io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
+    io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
+    io.to(`admin-${room.adminToken}`).emit("roundContinued");
   });
 
   socket.on("cancelRound", () => {
-    if (roundState.secret) {
-      roundHistory.push({
+    if (!socket.isAdmin || !socket.room) return;
+
+    const room = socket.room;
+    if (room.roundState.secret) {
+      room.roundHistory.push({
         playerName: "Sistema",
         correct: false,
         points: 0,
-        secret: roundState.secret,
+        secret: room.roundState.secret,
         timestamp: new Date().toLocaleTimeString("pt-BR", {
           timeZone: "America/Sao_Paulo",
         }),
         cancelled: true,
       });
 
-      resetRound();
-      io.of("/admin").emit("historyUpdate", roundHistory);
-      io.of("/game").emit("historyUpdate", roundHistory);
+      room.resetRound();
+      io.to(`admin-${room.adminToken}`).emit(
+        "historyUpdate",
+        room.roundHistory
+      );
+      io.to(`game-${room.gameToken}`).emit("historyUpdate", room.roundHistory);
     }
   });
 
   socket.on("removePlayer", ({ playerId }) => {
-    const playerSocketId = Array.from(players.keys()).find((socketId) => {
-      const player = players.get(socketId);
+    if (!socket.isAdmin || !socket.room) return;
+
+    const room = socket.room;
+    const playerSocketId = Array.from(room.players.keys()).find((socketId) => {
+      const player = room.players.get(socketId);
       return player && player.playerId === playerId;
     });
 
     if (playerSocketId) {
-      players.delete(playerSocketId);
+      room.players.delete(playerSocketId);
 
-      const playerSocket = io.of("/game").sockets.get(playerSocketId);
+      const playerSocket = io.sockets.sockets.get(playerSocketId);
       if (playerSocket) {
         playerSocket.emit("forceLogout");
         playerSocket.disconnect(true);
       }
 
-      const board = Array.from(players.values()).map((p) => ({
+      const board = Array.from(room.players.values()).map((p) => ({
         name: p.name,
         score: p.score,
       }));
-      const adminBoard = Array.from(players.values()).map((p) => ({
+      const adminBoard = Array.from(room.players.values()).map((p) => ({
         name: p.name,
         score: p.score,
         playerId: p.playerId,
       }));
 
-      io.of("/admin").emit("scoreUpdate", adminBoard);
-      io.of("/game").emit("scoreUpdate", board);
+      io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
+      io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
     }
-  });
-
-  const initialBoard = Array.from(players.values()).map((p) => ({
-    name: p.name,
-    score: p.score,
-    playerId: p.playerId,
-  }));
-  socket.emit("scoreUpdate", initialBoard);
-  socket.emit("historyUpdate", roundHistory);
-});
-
-// Player namespace
-io.of("/game").on("connection", (socket) => {
-  socket.on("join", ({ name, playerId }) => {
-    let finalPlayerId = playerId;
-    let playerScore = 0;
-
-    if (playerId) {
-      const existingPlayer = Array.from(players.values()).find(
-        (p) => p.playerId === playerId
-      );
-      if (existingPlayer) {
-        playerScore = existingPlayer.score;
-        players.delete(existingPlayer.id);
-      }
-    }
-
-    if (!finalPlayerId) {
-      finalPlayerId =
-        Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
-    players.set(socket.id, {
-      id: socket.id,
-      playerId: finalPlayerId,
-      name,
-      score: playerScore,
-    });
-
-    socket.emit("joined", { socketId: socket.id, playerId: finalPlayerId });
-    const board = Array.from(players.values()).map((p) => ({
-      name: p.name,
-      score: p.score,
-    }));
-    const adminBoard = Array.from(players.values()).map((p) => ({
-      name: p.name,
-      score: p.score,
-      playerId: p.playerId,
-    }));
-    io.of("/admin").emit("scoreUpdate", adminBoard);
-    io.of("/game").emit("scoreUpdate", board);
-    socket.emit("historyUpdate", roundHistory);
   });
 
   socket.on("getPlayerInfo", ({ playerId }) => {
-    const existingPlayer = Array.from(players.values()).find(
+    if (!socket.room) return;
+
+    const existingPlayer = Array.from(socket.room.players.values()).find(
       (p) => p.playerId === playerId
     );
     if (existingPlayer) {
@@ -357,45 +443,78 @@ io.of("/game").on("connection", (socket) => {
   });
 
   socket.on("logout", () => {
-    const player = players.get(socket.id);
-    if (player) {
-      players.delete(socket.id);
+    if (!socket.room || !socket.isPlayer) return;
 
-      const board = Array.from(players.values()).map((p) => ({
+    const room = socket.room;
+    const player = room.players.get(socket.id);
+    if (player) {
+      room.players.delete(socket.id);
+
+      const board = Array.from(room.players.values()).map((p) => ({
         name: p.name,
         score: p.score,
       }));
-      const adminBoard = Array.from(players.values()).map((p) => ({
+      const adminBoard = Array.from(room.players.values()).map((p) => ({
         name: p.name,
         score: p.score,
         playerId: p.playerId,
       }));
 
-      io.of("/admin").emit("scoreUpdate", adminBoard);
-      io.of("/game").emit("scoreUpdate", board);
+      io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
+      io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
     }
   });
 
   socket.on("buzz", () => {
-    const now = Date.now();
-    if (roundState.buzzed) return;
-    if (!roundState.start) return;
+    if (!socket.room || !socket.isPlayer) return;
 
-    const player = players.get(socket.id);
+    const room = socket.room;
+    const now = Date.now();
+    if (room.roundState.buzzed) return;
+    if (!room.roundState.start) return;
+
+    const player = room.players.get(socket.id);
     if (!player) return;
 
-    const blockedAt = roundState.blocked.get(player.id) || 0;
+    const blockedAt = room.roundState.blocked.get(player.id) || 0;
     if (now - blockedAt < 30000) return;
 
-    roundState.buzzed = true;
-    roundState.buzzPlayerId = socket.id;
-    roundState.buzzDelta = now - roundState.start - roundState.totalPausedTime;
+    room.roundState.buzzed = true;
+    room.roundState.buzzPlayerId = socket.id;
+    room.roundState.buzzDelta =
+      now - room.roundState.start - room.roundState.totalPausedTime;
 
-    roundState.paused = true;
-    roundState.pausedAt = now;
+    room.roundState.paused = true;
+    room.roundState.pausedAt = now;
 
-    io.of("/game").emit("buzzed", { name: player.name });
-    io.of("/admin").emit("buzzed", { playerId: socket.id, name: player.name });
+    io.to(`game-${room.gameToken}`).emit("buzzed", { name: player.name });
+    io.to(`admin-${room.adminToken}`).emit("buzzed", {
+      playerId: socket.id,
+      name: player.name,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    if (socket.room && socket.isPlayer) {
+      const room = socket.room;
+      const player = room.players.get(socket.id);
+      if (player) {
+        room.players.delete(socket.id);
+
+        const board = Array.from(room.players.values()).map((p) => ({
+          name: p.name,
+          score: p.score,
+        }));
+        const adminBoard = Array.from(room.players.values()).map((p) => ({
+          name: p.name,
+          score: p.score,
+          playerId: p.playerId,
+        }));
+
+        io.to(`admin-${room.adminToken}`).emit("scoreUpdate", adminBoard);
+        io.to(`game-${room.gameToken}`).emit("scoreUpdate", board);
+      }
+    }
   });
 });
 

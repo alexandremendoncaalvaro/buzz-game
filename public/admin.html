@@ -81,25 +81,37 @@
       }
 
       input {
-        padding: 0.8rem;
+        padding: 1rem 1.25rem;
         font-size: 1.1rem;
         border: 1px solid #30363d;
-        border-radius: 6px;
+        border-radius: 8px;
         background: #21262d;
         color: #f0f6fc;
         min-width: 200px;
+        transition: all 0.2s ease;
+        min-height: 48px;
       }
 
       #secret {
-        min-width: 400px;
+        min-width: 100%;
         flex: 1;
-        max-width: 500px;
+        max-width: 100%;
+        font-size: 1.2rem;
+        padding: 1.25rem;
+        text-align: left;
+      }
+
+      #maxPts {
+        min-width: 200px;
+        max-width: 200px;
+        text-align: center;
       }
 
       input:focus {
         outline: none;
         border-color: #58a6ff;
         box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+        background: #262c36;
       }
 
       button {
@@ -303,6 +315,95 @@
         text-align: center;
       }
 
+      .link-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .link-label {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #8b949e;
+        margin-bottom: 0.5rem;
+      }
+
+      .link-input-group {
+        display: flex;
+        gap: 0.75rem;
+        align-items: stretch;
+      }
+
+      .link-input {
+        flex: 1;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        background: #21262d;
+        color: #f0f6fc;
+        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+      }
+
+      .link-input:focus {
+        outline: none;
+        border-color: #58a6ff;
+        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+      }
+
+      .admin-link {
+        border-color: #7c3aed;
+        background: rgba(124, 58, 237, 0.1);
+      }
+
+      .game-link {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+      }
+
+      .copy-btn {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        min-width: 100px;
+      }
+
+      .admin-copy {
+        background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+      }
+
+      .admin-copy:hover {
+        background: linear-gradient(135deg, #6d28d9, #7c3aed);
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .game-copy {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      .game-copy:hover {
+        background: linear-gradient(135deg, #059669, #10b981);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .game-controls {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #30363d;
+      }
+
       @media (max-width: 768px) {
         .grid {
           grid-template-columns: 1fr;
@@ -315,6 +416,13 @@
           flex-direction: column;
           width: 100%;
         }
+        .link-input-group {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .copy-btn {
+          min-width: 100%;
+        }
         input {
           min-width: 100%;
           margin: 0.5rem 0;
@@ -323,32 +431,120 @@
           min-width: 100%;
           max-width: 100%;
         }
+        #maxPts {
+          min-width: 100%;
+          max-width: 100%;
+        }
         body {
           padding: 1rem;
+        }
+        h1 {
+          font-size: 2rem;
         }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>Admin - Buzz Games</h1>
+      <h1 id="roomTitle">Admin - Buzz Games</h1>
 
       <div class="card">
-        <div class="controls">
-          <div class="controls-row">
-            <input id="secret" placeholder="Digite a resposta correta" />
+        <div id="gameInfo" style="display: none">
+          <h3 style="text-align: center; color: #7c3aed; margin-bottom: 1.5rem">
+            🎮 Links da Sala
+          </h3>
+
+          <div class="link-section">
+            <label class="link-label">Link do Administrador</label>
+            <div class="link-input-group">
+              <input
+                type="text"
+                id="adminLink"
+                readonly
+                class="link-input admin-link"
+              />
+              <button onclick="copyAdminLink()" class="copy-btn admin-copy">
+                📋 Copiar
+              </button>
+            </div>
           </div>
-          <div class="controls-row">
-            <input
-              id="maxPts"
-              type="number"
-              value="200"
-              placeholder="Pontos/Segundos máximos"
-            />
-            <button id="start">▶️ Iniciar Rodada</button>
-            <button id="cancel" style="display: none">
-              ❌ Cancelar Rodada
-            </button>
+
+          <div class="link-section">
+            <label class="link-label">Link dos Jogadores</label>
+            <div class="link-input-group">
+              <input
+                type="text"
+                id="gameLink"
+                readonly
+                class="link-input game-link"
+              />
+              <button onclick="copyGameLink()" class="copy-btn game-copy">
+                📋 Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-controls">
+          <h3 style="text-align: center; color: #f0f6fc; margin-bottom: 1.5rem">
+            ⚙️ Controles do Jogo
+          </h3>
+
+          <div class="controls">
+            <div class="controls-row" style="width: 100%; margin-bottom: 1rem">
+              <label
+                for="secret"
+                style="
+                  display: block;
+                  font-weight: 600;
+                  color: #8b949e;
+                  margin-bottom: 0.5rem;
+                  font-size: 1rem;
+                "
+              >
+                Resposta Correta
+              </label>
+              <input
+                id="secret"
+                placeholder="Digite a resposta que os jogadores devem acertar"
+              />
+            </div>
+            <div
+              class="controls-row"
+              style="
+                display: flex;
+                gap: 1rem;
+                align-items: end;
+                flex-wrap: wrap;
+              "
+            >
+              <div style="flex: 1; min-width: 200px">
+                <label
+                  for="maxPts"
+                  style="
+                    display: block;
+                    font-weight: 600;
+                    color: #8b949e;
+                    margin-bottom: 0.5rem;
+                    font-size: 1rem;
+                  "
+                >
+                  Pontos/Segundos Máximos
+                </label>
+                <input
+                  id="maxPts"
+                  type="number"
+                  value="200"
+                  placeholder="200"
+                />
+              </div>
+              <div style="display: flex; gap: 1rem">
+                <button id="start">▶️ Iniciar Rodada</button>
+                <button id="cancel" style="display: none">
+                  ❌ Cancelar Rodada
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -388,8 +584,115 @@
       </div>
     </div>
     <script>
-      const socket = io("/admin");
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminToken = urlParams.get("token");
+      const gameToken = urlParams.get("game");
+
+      if (!adminToken || !gameToken) {
+        alert("Token de admin inválido. Redirecionando...");
+        window.location.href = "/create.html";
+      }
+
+      const socket = io();
       let currentBuzzPlayer = null;
+
+      function copyAdminLink() {
+        const adminLink = document.getElementById("adminLink");
+        adminLink.select();
+        adminLink.setSelectionRange(0, 99999);
+
+        try {
+          const successful = document.execCommand("copy");
+          if (successful) {
+            showCopySuccess(".admin-copy", "✅ Copiado!");
+          } else {
+            fallbackCopyTextToClipboard(adminLink.value, ".admin-copy");
+          }
+        } catch (err) {
+          fallbackCopyTextToClipboard(adminLink.value, ".admin-copy");
+        }
+      }
+
+      function copyGameLink() {
+        const gameLink = document.getElementById("gameLink");
+        gameLink.select();
+        gameLink.setSelectionRange(0, 99999);
+
+        try {
+          const successful = document.execCommand("copy");
+          if (successful) {
+            showCopySuccess(".game-copy", "✅ Copiado!");
+          } else {
+            fallbackCopyTextToClipboard(gameLink.value, ".game-copy");
+          }
+        } catch (err) {
+          fallbackCopyTextToClipboard(gameLink.value, ".game-copy");
+        }
+      }
+
+      function fallbackCopyTextToClipboard(text, buttonSelector) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => {
+              showCopySuccess(buttonSelector, "✅ Copiado!");
+            })
+            .catch(() => {
+              showCopySuccess(buttonSelector, "⚠️ Copie manualmente");
+            });
+        } else {
+          showCopySuccess(buttonSelector, "⚠️ Copie manualmente");
+        }
+      }
+
+      function showCopySuccess(buttonSelector, message) {
+        const btn = document.querySelector(buttonSelector);
+        const originalText = btn.textContent;
+        const originalBackground = btn.style.background;
+
+        btn.textContent = message;
+        if (buttonSelector === ".admin-copy") {
+          btn.style.background = "linear-gradient(135deg, #059669, #10b981)";
+        } else {
+          btn.style.background = "linear-gradient(135deg, #f59e0b, #fbbf24)";
+        }
+
+        setTimeout(() => {
+          btn.textContent = originalText;
+          if (buttonSelector === ".admin-copy") {
+            btn.style.background = "linear-gradient(135deg, #7c3aed, #8b5cf6)";
+          } else {
+            btn.style.background = "linear-gradient(135deg, #10b981, #34d399)";
+          }
+        }, 2000);
+      }
+
+      function showGameInfo() {
+        const baseUrl = `${window.location.protocol}//${window.location.host}`;
+        const adminLink = `${baseUrl}/admin.html?token=${adminToken}&game=${gameToken}`;
+        const playerLink = `${baseUrl}/index.html?game=${gameToken}`;
+
+        document.getElementById("adminLink").value = adminLink;
+        document.getElementById("gameLink").value = playerLink;
+        document.getElementById("gameInfo").style.display = "block";
+      }
+
+      socket.emit("admin-join", { adminToken });
+
+      socket.on("joined", ({ gameToken: receivedGameToken, roomTitle }) => {
+        if (roomTitle) {
+          document.getElementById(
+            "roomTitle"
+          ).textContent = `Admin - ${roomTitle}`;
+          document.title = `Admin - ${roomTitle}`;
+        }
+        showGameInfo();
+      });
+
+      socket.on("error", ({ message }) => {
+        alert(`Erro: ${message}`);
+        window.location.href = "/create.html";
+      });
 
       document.getElementById("start").onclick = () => {
         const secret = document.getElementById("secret").value.trim();
