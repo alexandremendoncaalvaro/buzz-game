@@ -159,7 +159,9 @@ io.of("/admin").on("connection", (socket) => {
       correct,
       points: earnedPoints,
       secret: roundState.secret,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toLocaleTimeString("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+      }),
     });
 
     // Emitir answerProcessed primeiro
@@ -167,6 +169,7 @@ io.of("/admin").on("connection", (socket) => {
       correct,
       playerName: player.name,
       points: earnedPoints,
+      secret: correct ? roundState.secret : null, // Só mostra resposta se acertou
     });
 
     // Atualizar histórico imediatamente após resposta
@@ -228,7 +231,9 @@ io.of("/admin").on("connection", (socket) => {
         correct: false,
         points: 0,
         secret: roundState.secret,
-        timestamp: new Date().toLocaleTimeString(),
+        timestamp: new Date().toLocaleTimeString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+        }),
         cancelled: true,
       });
 
