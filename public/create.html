@@ -111,6 +111,24 @@
       <div class="card">
         <h2>Criar Novo Jogo</h2>
         <p>Crie uma sala privada para jogar com sua equipe</p>
+
+        <input
+          id="roomTitle"
+          placeholder="Nome da sala (ex: Quiz da Empresa, Trivia Friday...)"
+          style="
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1.1rem;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            text-align: center;
+            background: #21262d;
+            color: #f0f6fc;
+            transition: all 0.2s ease;
+          "
+        />
+
         <button id="createGame">Criar Jogo</button>
       </div>
     </div>
@@ -119,8 +137,18 @@
       document
         .getElementById("createGame")
         .addEventListener("click", async () => {
+          const title =
+            document.getElementById("roomTitle").value.trim() || "Buzz Game";
+
           try {
-            const response = await fetch("/create-game");
+            const response = await fetch("/create-game", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ title }),
+            });
+
             const { adminToken, gameToken } = await response.json();
             window.location.href = `/admin.html?token=${adminToken}&game=${gameToken}`;
           } catch (error) {
@@ -128,6 +156,12 @@
             alert("Erro ao criar jogo. Tente novamente.");
           }
         });
+
+      document.getElementById("roomTitle").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          document.getElementById("createGame").click();
+        }
+      });
     </script>
   </body>
 </html>

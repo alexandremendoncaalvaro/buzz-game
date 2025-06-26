@@ -287,7 +287,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>Buzz Games</h1>
+      <h1 id="gameTitle">Buzz Games</h1>
 
       <div id="login" class="card">
         <h3>Entre no Jogo</h3>
@@ -347,6 +347,22 @@
         window.location.href = "/create.html";
       }
 
+      // Carregar informações da sala antes mesmo do login
+      async function loadGameInfo() {
+        try {
+          const response = await fetch(`/game-info/${gameToken}`);
+          if (response.ok) {
+            const { roomTitle } = await response.json();
+            document.getElementById("gameTitle").textContent = roomTitle;
+            document.title = roomTitle;
+          }
+        } catch (error) {
+          console.error("Erro ao carregar informações da sala:", error);
+        }
+      }
+
+      loadGameInfo();
+
       const socket = io();
 
       if (playerId) {
@@ -366,7 +382,12 @@
         document.getElementById("playerName").textContent = `Jogador: ${name}`;
       }
 
-      socket.on("joined", ({ playerId }) => {
+      socket.on("joined", ({ playerId, roomTitle }) => {
+        if (roomTitle) {
+          document.getElementById("gameTitle").textContent = roomTitle;
+          document.title = roomTitle;
+        }
+
         if (!urlParams.get("id")) {
           const name = document.getElementById("name").value.trim();
           const newUrl = `${window.location.pathname}?game=${gameToken}&id=${playerId}`;

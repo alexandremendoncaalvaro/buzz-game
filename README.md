@@ -25,20 +25,13 @@ Implementamos esta dinâmica com grande sucesso:
 - **Monitore tudo:** Acompanhe placar em tempo real, histórico completo e gerencie participantes.
 - **Compartilhe links:** Copie facilmente o link dos jogadores para distribuir à sua equipe.
 
-![Painel do Administrador](assets/admin.png)
-
 #### Para os Jogadores
 
 - **Acesso via link:** Receba o link do jogo do administrador e entre informando apenas seu nome.
 - **Sessão persistente:** Seu progresso é mantido mesmo se você sair e voltar usando o mesmo link personalizado.
-
-![Tela de Entrada do Jogador](assets/name.png)
-
 - **Seja rápido:** Quando a rodada começar, o primeiro a apertar "BUZZ" ganha a chance de responder.
 - **Ganhe pontos:** Acerte para pontuar baseado na sua velocidade. Erre e fique bloqueado por 30 segundos.
 - **Acompanhe a disputa:** Veja o placar atualizado e o histórico completo das rodadas em tempo real.
-
-![Tela Principal do Jogador](assets/player.png)
 
 ### 2. Arquitetura Multi-Tenant
 

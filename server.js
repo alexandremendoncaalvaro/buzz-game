@@ -7,13 +7,15 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static("public"));
+app.use(express.json());
 
 const gameRooms = new Map();
 
 class GameRoom {
-  constructor(adminToken, gameToken) {
+  constructor(adminToken, gameToken, roomTitle = "Buzz Game") {
     this.adminToken = adminToken;
     this.gameToken = gameToken;
+    this.roomTitle = roomTitle;
     this.players = new Map();
     this.roundHistory = [];
     this.roundState = {
@@ -80,14 +82,26 @@ function getGameRoom(adminToken, gameToken) {
   return null;
 }
 
-app.get("/create-game", (req, res) => {
+app.post("/create-game", (req, res) => {
   const adminToken = `admin-${Math.random().toString(36).substr(2, 12)}`;
   const gameToken = `game-${Math.random().toString(36).substr(2, 8)}`;
+  const roomTitle = req.body?.title || "Buzz Game";
 
-  const room = new GameRoom(adminToken, gameToken);
+  const room = new GameRoom(adminToken, gameToken, roomTitle);
   gameRooms.set(adminToken, room);
 
-  res.json({ adminToken, gameToken });
+  res.json({ adminToken, gameToken, roomTitle });
+});
+
+app.get("/game-info/:gameToken", (req, res) => {
+  const { gameToken } = req.params;
+  const room = getGameRoom(null, gameToken);
+
+  if (!room) {
+    return res.status(404).json({ error: "Sala não encontrada" });
+  }
+
+  res.json({ roomTitle: room.roomTitle });
 });
 
 setInterval(() => {
@@ -190,7 +204,10 @@ io.on("connection", (socket) => {
       playerId: p.playerId,
     }));
 
-    socket.emit("joined", { gameToken: room.gameToken });
+    socket.emit("joined", {
+      gameToken: room.gameToken,
+      roomTitle: room.roomTitle,
+    });
     socket.emit("scoreUpdate", initialBoard);
     socket.emit("historyUpdate", room.roundHistory);
   });
@@ -231,7 +248,11 @@ io.on("connection", (socket) => {
     socket.room = room;
     socket.isPlayer = true;
 
-    socket.emit("joined", { socketId: socket.id, playerId: finalPlayerId });
+    socket.emit("joined", {
+      socketId: socket.id,
+      playerId: finalPlayerId,
+      roomTitle: room.roomTitle,
+    });
 
     const board = Array.from(room.players.values()).map((p) => ({
       name: p.name,

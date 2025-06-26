@@ -446,7 +446,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>Admin - Buzz Games</h1>
+      <h1 id="roomTitle">Admin - Buzz Games</h1>
 
       <div class="card">
         <div id="gameInfo" style="display: none">
@@ -679,7 +679,13 @@
 
       socket.emit("admin-join", { adminToken });
 
-      socket.on("joined", ({ gameToken: receivedGameToken }) => {
+      socket.on("joined", ({ gameToken: receivedGameToken, roomTitle }) => {
+        if (roomTitle) {
+          document.getElementById(
+            "roomTitle"
+          ).textContent = `Admin - ${roomTitle}`;
+          document.title = `Admin - ${roomTitle}`;
+        }
         showGameInfo();
       });
 
