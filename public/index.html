@@ -293,8 +293,10 @@
             <span id="countdown" class="countdown">30</span> segundos para
             tentar novamente.
           </div>
-          <button id="buzz" disabled>🚨 RESPONDER!</button><br />
-          <small>Pressione ESPAÇO para acionar o botão de resposta</small>
+          <div id="buzzContainer" style="display: none">
+            <button id="buzz" disabled>🚨 RESPONDER!</button><br />
+            <small>Pressione ESPAÇO para acionar o botão de resposta</small>
+          </div>
         </div>
 
         <div class="card">
@@ -364,7 +366,8 @@
       window.addEventListener("keydown", (e) => {
         if (
           e.code === "Space" &&
-          document.getElementById("game").style.display !== "none"
+          document.getElementById("game").style.display !== "none" &&
+          document.getElementById("buzzContainer").style.display !== "none"
         ) {
           e.preventDefault();
           socket.emit("buzz");
@@ -377,6 +380,7 @@
           blockTimer = null;
         }
         document.getElementById("blockedMessage").style.display = "none";
+        document.getElementById("buzzContainer").style.display = "block";
         document.getElementById("buzz").disabled = false;
         document.getElementById("status").textContent =
           "Rodada ativa - Aperte o buzzer!";
@@ -428,6 +432,7 @@
           blockTimer = null;
         }
         document.getElementById("blockedMessage").style.display = "none";
+        document.getElementById("buzzContainer").style.display = "none";
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
           "Aguardando próxima rodada...";
