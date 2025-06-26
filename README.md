@@ -23,12 +23,19 @@ Uma maneira divertida que usamos foi a seguinte:
 - **Valide as respostas:** Quando um jogador aperta o "BUZZ", você é notificado. O jogador responde verbalmente, e você simplesmente clica em "Correto" ou "Incorreto" no painel.
 - **Controle total:** Você acompanha o placar, o histórico de todas as rodadas e pode até remover um jogador, se necessário.
 
+![Painel do Administrador](assets/admin.png)
+
 #### Para os Jogadores
 
 - **Entre e jogue:** Você acessa a página do jogo, digita seu nome e espera o desafio ser apresentado.
+
+![Tela de Entrada do Jogador](assets/name.png)
+
 - **Seja rápido no gatilho:** Assim que o admin iniciar a rodada, o botão "BUZZ" ficará disponível. O primeiro a apertar ganha a chance de responder.
 - **Responda e marque pontos:** Se acertar, você ganha pontos baseados na sua velocidade. Se errar, fica bloqueado por 30 segundos sem poder dar um novo buzz.
 - **Acompanhe a competição:** O placar e o histórico de quem acertou, errou ou deixou o tempo acabar são visíveis para todos.
+
+![Tela Principal do Jogador](assets/player.png)
 
 ### 2. Visão Geral Técnica
 
