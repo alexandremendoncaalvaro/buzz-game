@@ -6,12 +6,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static("public"));
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.redirect("/create.html");
 });
+
+app.use(express.static("public"));
 
 const gameRooms = new Map();
 

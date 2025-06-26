@@ -134,13 +134,18 @@
       }
 
       #start {
-        background: linear-gradient(135deg, #238636, #2ea043);
-        box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+        background: rgb(255, 198, 41);
+        font-size: 1.2rem;
+        padding: 1rem 2rem;
+        box-shadow: 0 6px 20px rgba(255, 198, 41, 0.4);
+        color: #21262d;
+        font-weight: 700;
       }
 
       #start:hover {
-        background: linear-gradient(135deg, #1f7a2e, #2d8f47);
-        box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
+        background: rgb(245, 188, 31);
+        box-shadow: 0 8px 24px rgba(255, 198, 41, 0.5);
+        transform: translateY(-2px);
       }
 
       #cancel {
@@ -596,6 +601,26 @@
       const socket = io();
       let currentBuzzPlayer = null;
 
+      socket.emit("admin-join", { adminToken });
+
+      socket.on("joined", ({ gameToken: receivedGameToken, roomTitle }) => {
+        if (roomTitle) {
+          document.getElementById(
+            "roomTitle"
+          ).textContent = `Admin - ${roomTitle}`;
+          document.title = `Admin - ${roomTitle}`;
+        }
+        showGameInfo();
+      });
+
+      socket.on("error", ({ message }) => {
+        console.error("Erro de socket:", message);
+        if (message.includes("não encontrada")) {
+          alert(`Erro: ${message}. Redirecionando...`);
+          window.location.href = "/create.html";
+        }
+      });
+
       function copyAdminLink() {
         const adminLink = document.getElementById("adminLink");
         adminLink.select();
@@ -677,23 +702,6 @@
         document.getElementById("gameInfo").style.display = "block";
       }
 
-      socket.emit("admin-join", { adminToken });
-
-      socket.on("joined", ({ gameToken: receivedGameToken, roomTitle }) => {
-        if (roomTitle) {
-          document.getElementById(
-            "roomTitle"
-          ).textContent = `Admin - ${roomTitle}`;
-          document.title = `Admin - ${roomTitle}`;
-        }
-        showGameInfo();
-      });
-
-      socket.on("error", ({ message }) => {
-        alert(`Erro: ${message}`);
-        window.location.href = "/create.html";
-      });
-
       document.getElementById("start").onclick = () => {
         const secret = document.getElementById("secret").value.trim();
         const maxPoints = +document.getElementById("maxPts").value;
@@ -729,7 +737,6 @@
         const ul = document.getElementById("scores");
         const previousScores = new Map();
 
-        // Capturar pontuações anteriores para detectar mudanças
         Array.from(ul.children).forEach((li) => {
           const nameElement = li.querySelector("[data-player-name]");
           if (nameElement) {
@@ -743,23 +750,19 @@
 
         ul.innerHTML = "";
 
-        // Ordenar por pontuação (maior primeiro)
         const sortedBoard = board.sort((a, b) => b.score - a.score);
 
         sortedBoard.forEach((p, index) => {
           const li = document.createElement("li");
 
-          // Verificar se a pontuação mudou
           const previousScore = previousScores.get(p.name) || 0;
           const scoreChanged = previousScore !== p.score;
           const scoreIncreased = p.score > previousScore;
 
-          // Aplicar classe de bloqueado se necessário
           if (p.blocked) {
             li.className = "blocked";
           }
 
-          // Definir posição e emoji
           let position = "";
           let emoji = "";
           switch (index) {
@@ -805,14 +808,12 @@
             </div>
           `;
 
-          // Destacar o primeiro colocado
           if (index === 0 && p.score > 0) {
             li.style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
             li.style.border = "2px solid #fbbf24";
             li.style.boxShadow = "0 4px 12px rgba(251, 191, 36, 0.3)";
           }
 
-          // Adicionar animação se a pontuação aumentou
           if (scoreIncreased) {
             li.classList.add("score-updated");
             setTimeout(() => li.classList.remove("score-updated"), 600);
@@ -821,7 +822,6 @@
           ul.appendChild(li);
         });
 
-        // Adicionar event listeners para os botões de remover
         document.querySelectorAll(".remove-player").forEach((button) => {
           button.onclick = (e) => {
             const playerId = e.target.getAttribute("data-player-id");

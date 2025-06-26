@@ -344,11 +344,11 @@
 
       if (!gameToken) {
         window.location.href = "/create.html";
-        return;
       }
 
-      // Carregar informações da sala antes mesmo do login
       async function loadGameInfo() {
+        if (!gameToken) return;
+
         try {
           const response = await fetch(`/game-info/${gameToken}`);
           if (response.ok) {
@@ -358,6 +358,7 @@
           }
         } catch (error) {
           console.error("Erro ao carregar informações da sala:", error);
+          window.location.href = "/create.html";
         }
       }
 
@@ -376,7 +377,17 @@
       });
 
       function joinGame(name, id) {
-        socket.emit("player-join", { gameToken, name, playerId: id });
+        const finalPlayerId =
+          id || Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+        const newUrl = `${window.location.pathname}?game=${gameToken}&id=${finalPlayerId}`;
+        window.history.replaceState({}, "", newUrl);
+
+        socket.emit("player-join", {
+          gameToken,
+          name,
+          playerId: finalPlayerId,
+        });
         document.getElementById("login").style.display = "none";
         document.getElementById("game").style.display = "block";
         document.getElementById("playerName").textContent = `Jogador: ${name}`;
@@ -386,12 +397,6 @@
         if (roomTitle) {
           document.getElementById("gameTitle").textContent = roomTitle;
           document.title = roomTitle;
-        }
-
-        if (!urlParams.get("id")) {
-          const name = document.getElementById("name").value.trim();
-          const newUrl = `${window.location.pathname}?game=${gameToken}&id=${playerId}`;
-          window.history.replaceState({}, "", newUrl);
         }
       });
 
@@ -460,7 +465,6 @@
             "status"
           ).textContent = `${name} fez buzz! Aguarde validação...`;
         }
-        // Durante validação, esconder o botão para todos
         document.getElementById("buzzContainer").style.display = "none";
       });
 
@@ -482,7 +486,6 @@
             clearInterval(blockTimer);
             blockTimer = null;
             document.getElementById("blockedMessage").style.display = "none";
-            // Não mostrar botão automaticamente - deixar para unblocked decidir
           } else {
             document.getElementById("countdown").textContent = remaining;
           }
@@ -496,7 +499,6 @@
             ? `${playerName} acertou! (+${points}pts)`
             : `${playerName} errou.`;
 
-          // Se acertou, mostrar a resposta correta
           if (correct && secret) {
             message += ` A resposta era: ${secret}`;
           }
@@ -504,10 +506,8 @@
           document.getElementById("status").textContent = message;
 
           if (correct) {
-            // Se a resposta foi correta, a rodada vai encerrar - esconder botão
             document.getElementById("buzzContainer").style.display = "none";
           } else {
-            // Se foi incorreta, mostrar botão novamente para outros jogadores
             const myName = document.getElementById("playerName").textContent;
             if (
               playerName !== myName &&
@@ -518,7 +518,6 @@
               document.getElementById("status").textContent =
                 message + " Você pode tentar!";
             } else if (playerName === myName) {
-              // Se fui eu que errei, manter botão escondido até desbloquear
               document.getElementById("buzzContainer").style.display = "none";
             }
           }
@@ -532,7 +531,6 @@
         }
         document.getElementById("blockedMessage").style.display = "none";
 
-        // Só mostra o botão se há uma rodada ativa e ninguém está fazendo buzz
         if (
           document.getElementById("status").textContent !==
             "Aguardando próxima rodada..." &&
@@ -571,7 +569,6 @@
         const ul = document.getElementById("scores");
         const previousScores = new Map();
 
-        // Capturar pontuações anteriores para detectar mudanças
         Array.from(ul.children).forEach((li) => {
           const nameElement = li.querySelector("[data-player-name]");
           if (nameElement) {
@@ -585,18 +582,15 @@
 
         ul.innerHTML = "";
 
-        // Ordenar por pontuação (maior primeiro)
         const sortedBoard = board.sort((a, b) => b.score - a.score);
 
         sortedBoard.forEach((p, index) => {
           const li = document.createElement("li");
 
-          // Verificar se a pontuação mudou
           const previousScore = previousScores.get(p.name) || 0;
           const scoreChanged = previousScore !== p.score;
           const scoreIncreased = p.score > previousScore;
 
-          // Definir posição e emoji
           let position = "";
           let emoji = "";
           switch (index) {
@@ -617,7 +611,6 @@
               emoji = "🏃‍♂️";
           }
 
-          // Criar estrutura mais rica
           const scoreDisplay = p.score > 0 ? `${p.score} pts` : "0 pts";
           li.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -634,14 +627,12 @@
             </div>
           `;
 
-          // Destacar o primeiro colocado
           if (index === 0 && p.score > 0) {
             li.style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
             li.style.border = "2px solid #fbbf24";
             li.style.boxShadow = "0 4px 12px rgba(251, 191, 36, 0.3)";
           }
 
-          // Adicionar animação se a pontuação aumentou
           if (scoreIncreased) {
             li.classList.add("score-updated");
             setTimeout(() => li.classList.remove("score-updated"), 600);
@@ -672,9 +663,7 @@
         });
       });
 
-      socket.on("disconnect", () => {
-        // Mantém URL com ID para reconexão
-      });
+      socket.on("disconnect", () => {});
 
       socket.on("forceLogout", () => {
         document.getElementById("login").style.display = "block";
