@@ -41,7 +41,7 @@ function resetRound() {
     totalPausedTime: 0,
   };
 
-  // Atualizar o admin board após limpar bloqueios
+  // Atualizar o board para admin (com informações completas)
   const adminBoard = Array.from(players.values()).map((p) => ({
     name: p.name,
     score: p.score,
@@ -50,7 +50,14 @@ function resetRound() {
     playerId: p.playerId,
   }));
 
+  // Atualizar o board para jogadores (versão simplificada)
+  const playerBoard = Array.from(players.values()).map((p) => ({
+    name: p.name,
+    score: p.score,
+  }));
+
   io.of("/admin").emit("scoreUpdate", adminBoard);
+  io.of("/game").emit("scoreUpdate", playerBoard);
   io.of("/game").emit("roundReset");
   io.of("/admin").emit("roundReset");
 }
@@ -174,11 +181,10 @@ io.of("/admin").on("connection", (socket) => {
 
     // Atualizar histórico imediatamente após resposta
     io.of("/admin").emit("historyUpdate", roundHistory);
-    io.of("/game").emit("historyUpdate", roundHistory);
-
-    // Se a resposta estiver correta, encerra a rodada
+    io.of("/game").emit("historyUpdate", roundHistory); // Se a resposta estiver correta, encerra a rodada
     if (correct) {
       resetRound();
+
       // Re-emitir histórico após reset para garantir sincronização
       io.of("/admin").emit("historyUpdate", roundHistory);
       io.of("/game").emit("historyUpdate", roundHistory);

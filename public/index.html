@@ -171,21 +171,49 @@
         text-align: left;
         max-height: 300px;
         overflow-y: auto;
+        gap: 0.5rem;
+        display: flex;
+        flex-direction: column;
       }
 
       .score-list li {
         background: #21262d;
         border: 1px solid #30363d;
-        margin: 0.5rem 0;
-        padding: 0.8rem;
-        border-radius: 6px;
-        font-size: 1.1rem;
-        transition: all 0.2s ease;
+        margin: 0;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
       }
 
       .score-list li:hover {
         border-color: #58a6ff;
         background: #262c36;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
+      }
+
+      .score-list li:first-child {
+        font-size: 1.1rem;
+        font-weight: bold;
+      }
+
+      @keyframes scoreUpdate {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .score-updated {
+        animation: scoreUpdate 0.6s ease;
       }
 
       .history-list {
@@ -300,7 +328,7 @@
         </div>
 
         <div class="card">
-          <h3>🏆 Placar</h3>
+          <h3>🏆 Ranking dos Campeões</h3>
           <ul id="scores" class="score-list"></ul>
         </div>
 
@@ -508,10 +536,84 @@
 
       socket.on("scoreUpdate", (board) => {
         const ul = document.getElementById("scores");
+        const previousScores = new Map();
+
+        // Capturar pontuações anteriores para detectar mudanças
+        Array.from(ul.children).forEach((li) => {
+          const nameElement = li.querySelector("[data-player-name]");
+          if (nameElement) {
+            const name = nameElement.textContent;
+            const scoreText =
+              li.querySelector("[data-score]")?.textContent || "0";
+            const score = parseInt(scoreText.replace(/\D/g, "")) || 0;
+            previousScores.set(name, score);
+          }
+        });
+
         ul.innerHTML = "";
-        board.forEach((p) => {
+
+        // Ordenar por pontuação (maior primeiro)
+        const sortedBoard = board.sort((a, b) => b.score - a.score);
+
+        sortedBoard.forEach((p, index) => {
           const li = document.createElement("li");
-          li.textContent = `${p.name}: ${p.score}`;
+
+          // Verificar se a pontuação mudou
+          const previousScore = previousScores.get(p.name) || 0;
+          const scoreChanged = previousScore !== p.score;
+          const scoreIncreased = p.score > previousScore;
+
+          // Definir posição e emoji
+          let position = "";
+          let emoji = "";
+          switch (index) {
+            case 0:
+              position = "1º";
+              emoji = "🥇";
+              break;
+            case 1:
+              position = "2º";
+              emoji = "🥈";
+              break;
+            case 2:
+              position = "3º";
+              emoji = "🥉";
+              break;
+            default:
+              position = `${index + 1}º`;
+              emoji = "🏃‍♂️";
+          }
+
+          // Criar estrutura mais rica
+          const scoreDisplay = p.score > 0 ? `${p.score} pts` : "0 pts";
+          li.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2em;">${emoji}</span>
+                <span style="font-weight: bold; color: #58a6ff;">${position}</span>
+                <span data-player-name>${p.name}</span>
+              </div>
+              <div style="font-weight: bold; color: ${
+                p.score > 0 ? "#7c3aed" : "#6b7280"
+              };" data-score>
+                ${scoreDisplay}
+              </div>
+            </div>
+          `;
+
+          // Destacar o primeiro colocado
+          if (index === 0 && p.score > 0) {
+            li.style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
+            li.style.border = "2px solid #fbbf24";
+            li.style.boxShadow = "0 4px 12px rgba(251, 191, 36, 0.3)";
+          }
+
+          // Adicionar animação se a pontuação aumentou
+          if (scoreIncreased) {
+            li.classList.add("score-updated");
+            setTimeout(() => li.classList.remove("score-updated"), 600);
+          }
+
           ul.appendChild(li);
         });
       });
