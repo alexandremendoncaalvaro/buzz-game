@@ -13,11 +13,18 @@
       }
 
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+          Helvetica, Arial, sans-serif;
+        background: #0d1117;
         min-height: 100vh;
-        color: white;
+        color: #f0f6fc;
         padding: 2rem;
+        background-image: radial-gradient(
+            circle at 25% 25%,
+            #161b22 0%,
+            transparent 50%
+          ),
+          radial-gradient(circle at 75% 75%, #21262d 0%, transparent 50%);
       }
 
       .container {
@@ -29,16 +36,27 @@
         text-align: center;
         font-size: 2.5rem;
         margin-bottom: 2rem;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(135deg, #a5a6ff, #58a6ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 600;
+        text-shadow: 0 0 20px rgba(165, 166, 255, 0.3);
       }
 
       .card {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 12px;
         padding: 1.5rem;
         margin: 1rem 0;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        transition: all 0.2s ease;
+      }
+
+      .card:hover {
+        border-color: #58a6ff;
+        box-shadow: 0 8px 32px rgba(88, 166, 255, 0.1);
       }
 
       .controls {
@@ -52,64 +70,98 @@
       input {
         padding: 0.8rem;
         font-size: 1.1rem;
-        border: none;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #333;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        background: #21262d;
+        color: #f0f6fc;
         min-width: 200px;
       }
 
+      input:focus {
+        outline: none;
+        border-color: #58a6ff;
+        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+      }
+
       button {
-        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        background: linear-gradient(135deg, #58a6ff, #a5a6ff);
         color: white;
         border: none;
         padding: 0.8rem 1.5rem;
         font-size: 1.1rem;
-        font-weight: bold;
-        border-radius: 25px;
+        font-weight: 600;
+        border-radius: 6px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
       }
 
       button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(88, 166, 255, 0.4);
+        background: linear-gradient(135deg, #479cf0, #9a9bff);
       }
 
       #start {
-        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        background: linear-gradient(135deg, #238636, #2ea043);
+        box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+      }
+
+      #start:hover {
+        background: linear-gradient(135deg, #1f7a2e, #2d8f47);
+        box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
       }
 
       #cancel {
-        background: linear-gradient(45deg, #f39c12, #e67e22);
+        background: linear-gradient(135deg, #9e6a03, #bf8700);
+        box-shadow: 0 4px 12px rgba(158, 106, 3, 0.3);
+      }
+
+      #cancel:hover {
+        background: linear-gradient(135deg, #8b5cf6, #a855f7);
+        box-shadow: 0 6px 16px rgba(158, 106, 3, 0.4);
       }
 
       .correct {
-        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        background: linear-gradient(135deg, #238636, #2ea043);
+        box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
       }
+
+      .correct:hover {
+        background: linear-gradient(135deg, #1f7a2e, #2d8f47);
+        box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
+      }
+
       .incorrect {
-        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        background: linear-gradient(135deg, #da3633, #f85149);
+        box-shadow: 0 4px 12px rgba(218, 54, 51, 0.3);
+      }
+
+      .incorrect:hover {
+        background: linear-gradient(135deg, #c93026, #ff6b6b);
+        box-shadow: 0 6px 16px rgba(218, 54, 51, 0.4);
       }
 
       .round-status {
         text-align: center;
-        background: rgba(46, 204, 113, 0.2);
-        border: 2px solid #2ecc71;
-        border-radius: 15px;
+        background: rgba(35, 134, 54, 0.2);
+        border: 1px solid #238636;
+        border-radius: 12px;
         padding: 1rem;
+        color: #7ee787;
       }
 
       .buzz-section {
         text-align: center;
-        background: rgba(241, 196, 15, 0.2);
-        border: 2px solid #f1c40f;
-        border-radius: 15px;
+        background: rgba(158, 106, 3, 0.2);
+        border: 1px solid #9e6a03;
+        border-radius: 12px;
         padding: 1.5rem;
+        color: #f2cc60;
       }
 
       .buzz-section h3 {
-        color: #f1c40f;
+        color: #f2cc60;
         margin-bottom: 1rem;
       }
 
@@ -127,26 +179,58 @@
       }
 
       .score-list li {
-        background: rgba(255, 255, 255, 0.1);
+        background: #21262d;
+        border: 1px solid #30363d;
         margin: 0.5rem 0;
         padding: 0.8rem;
-        border-radius: 8px;
+        border-radius: 6px;
         font-size: 1rem;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+      }
+
+      .score-list li:hover {
+        border-color: #58a6ff;
+        background: #262c36;
+      }
+
+      .score-list li.blocked {
+        background: rgba(218, 54, 51, 0.2);
+        border-color: #da3633;
+      }
+
+      .blocked-indicator {
+        background: #da3633;
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        border: 1px solid #f85149;
       }
 
       .history-list li {
-        background: rgba(255, 255, 255, 0.05);
+        background: #161b22;
+        border: 1px solid #21262d;
         margin: 0.3rem 0;
         padding: 0.6rem;
         border-radius: 6px;
         font-size: 0.9rem;
+        color: #7d8590;
+        transition: all 0.2s ease;
+      }
+
+      .history-list li:hover {
+        background: #21262d;
+        color: #f0f6fc;
       }
 
       .history-list li[style*="red"] {
-        background: rgba(231, 76, 60, 0.2);
-        border-left: 4px solid #e74c3c;
+        background: rgba(218, 54, 51, 0.2);
+        border-color: #da3633;
+        color: #ffa198;
       }
 
       h3 {
@@ -256,8 +340,16 @@
         ul.innerHTML = "";
         board.forEach((p) => {
           const li = document.createElement("li");
+          if (p.blocked) {
+            li.className = "blocked";
+          }
+
+          const blockedInfo = p.blocked
+            ? `<span class="blocked-indicator">Bloqueado: ${p.blockedTime}s</span>`
+            : "";
+
           li.innerHTML = `
-            <span><strong>${p.name}</strong></span>
+            <span><strong>${p.name}</strong> ${blockedInfo}</span>
             <span>${p.score} pts ${p.ip ? `(${p.ip})` : ""}</span>
           `;
           ul.appendChild(li);

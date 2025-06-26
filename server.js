@@ -43,6 +43,29 @@ let roundState = {
   buzzDelta: null,
 };
 
+// Atualiza status de bloqueio a cada segundo
+setInterval(() => {
+  const adminBoard = Array.from(players.values()).map((p) => {
+    const blockedAt = roundState.blocked.get(p.id) || 0;
+    const isBlocked = blockedAt > 0 && Date.now() - blockedAt < 30000;
+    const remainingTime = isBlocked
+      ? Math.ceil((30000 - (Date.now() - blockedAt)) / 1000)
+      : 0;
+
+    return {
+      name: p.name,
+      score: p.score,
+      ip: p.ip,
+      blocked: isBlocked,
+      blockedTime: remainingTime,
+    };
+  });
+
+  if (adminBoard.some((p) => p.blocked)) {
+    io.of("/admin").emit("scoreUpdate", adminBoard);
+  }
+}, 1000);
+
 // Admin (host) namespace
 io.of("/admin").on("connection", (socket) => {
   socket.on("startRound", ({ secretAnswer, maxPoints }) => {
@@ -78,21 +101,40 @@ io.of("/admin").on("connection", (socket) => {
       timestamp: new Date().toLocaleTimeString(),
     });
 
-    roundState.blocked.set(playerId, Date.now());
+    // Só bloqueia se a resposta estiver incorreta
+    if (!correct) {
+      const blockTime = Date.now();
+      roundState.blocked.set(playerId, blockTime);
+      io.of("/game")
+        .to(playerId)
+        .emit("blocked", { duration: 30000, startTime: blockTime });
+    }
+
     const board = Array.from(players.values()).map((p) => ({
       name: p.name,
       score: p.score,
     }));
-    const adminBoard = Array.from(players.values()).map((p) => ({
-      name: p.name,
-      score: p.score,
-      ip: p.ip,
-    }));
+    const adminBoard = Array.from(players.values()).map((p) => {
+      const blockedAt = roundState.blocked.get(p.id) || 0;
+      const isBlocked = blockedAt > 0 && Date.now() - blockedAt < 30000;
+      const remainingTime = isBlocked
+        ? Math.ceil((30000 - (Date.now() - blockedAt)) / 1000)
+        : 0;
+
+      return {
+        name: p.name,
+        score: p.score,
+        ip: p.ip,
+        blocked: isBlocked,
+        blockedTime: remainingTime,
+      };
+    });
+
     io.of("/admin").emit("scoreUpdate", adminBoard);
     io.of("/game").emit("scoreUpdate", board);
     io.of("/admin").emit("historyUpdate", roundHistory);
     io.of("/game").emit("historyUpdate", roundHistory);
-    io.of("/game").to(playerId).emit("blocked", 30000);
+
     io.of("/game").emit("answerProcessed", {
       correct,
       playerName: player.name,
