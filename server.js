@@ -60,6 +60,14 @@ setInterval(() => {
   let needsUpdate = false;
   const playersToUnblock = [];
 
+  // Só processar bloqueios se há rodada ativa ou se há jogadores bloqueados
+  const hasActiveRound = roundState.start !== null;
+  const hasBlockedPlayers = roundState.blocked.size > 0;
+
+  if (!hasActiveRound && !hasBlockedPlayers) {
+    return; // Não fazer nada se não há rodada ativa nem jogadores bloqueados
+  }
+
   const adminBoard = Array.from(players.values()).map((p) => {
     const blockedAt = roundState.blocked.get(p.id) || 0;
     const isBlocked = blockedAt > 0 && now - blockedAt < 30000;
@@ -92,7 +100,7 @@ setInterval(() => {
     io.of("/admin").emit("scoreUpdate", adminBoard);
   }
 
-  // Timer da rodada
+  // Timer da rodada (apenas se há rodada ativa)
   if (roundState.start && !roundState.paused) {
     const elapsed = now - roundState.start - roundState.totalPausedTime;
     const remaining = Math.ceil((roundState.maxPoints * 1000 - elapsed) / 1000);
@@ -168,6 +176,9 @@ io.of("/admin").on("connection", (socket) => {
     // Se a resposta estiver correta, encerra a rodada
     if (correct) {
       resetRound();
+      // Re-emitir histórico após reset para garantir sincronização
+      io.of("/admin").emit("historyUpdate", roundHistory);
+      io.of("/game").emit("historyUpdate", roundHistory);
       return;
     }
 
