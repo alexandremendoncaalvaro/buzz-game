@@ -399,4 +399,4 @@ io.of("/game").on("connection", (socket) => {
   });
 });
 
-server.listen(3333, () => console.log("Server listening on port 3333"));
+server.listen(3000, () => console.log("Server listening on port 3000"));
