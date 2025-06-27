@@ -235,7 +235,6 @@
       .score-list li:hover {
         border-color: #58a6ff;
         background: #262c36;
-        transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
       }
 
@@ -276,20 +275,24 @@
       }
 
       .remove-player {
-        background: #da3633;
-        color: white;
-        border: none;
+        background: #21262d;
+        color: #7d8590;
+        border: 1px solid #30363d;
         padding: 0.3rem 0.6rem;
         border-radius: 4px;
         font-size: 0.8rem;
         cursor: pointer;
         margin-left: 10px;
         transition: all 0.2s ease;
+        box-shadow: none;
+        font-weight: normal;
       }
 
       .remove-player:hover {
-        background: #c93026;
-        transform: translateY(-1px);
+        background: #30363d;
+        color: #f85149;
+        transform: none;
+        box-shadow: none;
       }
 
       .history-list li {
@@ -321,15 +324,15 @@
       }
 
       .link-section {
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.75rem;
       }
 
       .link-label {
         display: block;
-        font-size: 1rem;
-        font-weight: 600;
-        color: #8b949e;
-        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: normal;
+        color: #6e7681;
+        margin-bottom: 0.25rem;
       }
 
       .link-input-group {
@@ -340,67 +343,71 @@
 
       .link-input {
         flex: 1;
-        padding: 0.875rem 1rem;
-        font-size: 0.95rem;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        background: #21262d;
-        color: #f0f6fc;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        border: 1px solid #21262d;
+        border-radius: 6px;
+        background: #161b22;
+        color: #7d8590;
         font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
-        font-size: 0.85rem;
         transition: all 0.2s ease;
       }
 
       .link-input:focus {
         outline: none;
-        border-color: #58a6ff;
-        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+        border-color: #30363d;
+        color: #f0f6fc;
+        box-shadow: none;
       }
 
       .admin-link {
-        border-color: #7c3aed;
-        background: rgba(124, 58, 237, 0.1);
+        border-color: #21262d;
+        background: #161b22;
       }
 
       .game-link {
-        border-color: #10b981;
-        background: rgba(16, 185, 129, 0.1);
+        border-color: #21262d;
+        background: #161b22;
       }
 
       .copy-btn {
-        padding: 0.875rem 1.25rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        border-radius: 8px;
-        border: none;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: normal;
+        border-radius: 6px;
+        border: 1px solid #30363d;
         cursor: pointer;
         transition: all 0.2s ease;
         white-space: nowrap;
-        min-width: 100px;
+        min-width: 80px;
+        background: #21262d;
+        color: #7d8590;
       }
 
       .admin-copy {
-        background: linear-gradient(135deg, #7c3aed, #8b5cf6);
-        color: white;
-        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        background: #21262d;
+        color: #7d8590;
+        box-shadow: none;
       }
 
       .admin-copy:hover {
-        background: linear-gradient(135deg, #6d28d9, #7c3aed);
-        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
-        transform: translateY(-1px);
+        background: #30363d;
+        color: #f0f6fc;
+        transform: none;
+        box-shadow: none;
       }
 
       .game-copy {
-        background: linear-gradient(135deg, #10b981, #34d399);
-        color: white;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        background: #21262d;
+        color: #7d8590;
+        box-shadow: none;
       }
 
       .game-copy:hover {
-        background: linear-gradient(135deg, #059669, #10b981);
-        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-        transform: translateY(-1px);
+        background: #30363d;
+        color: #f0f6fc;
+        transform: none;
+        box-shadow: none;
       }
 
       .game-controls {
@@ -455,9 +462,34 @@
 
       <div class="card">
         <div id="gameInfo" style="display: none">
-          <h3 style="text-align: center; color: #7c3aed; margin-bottom: 1.5rem">
-            🎮 Links da Sala
-          </h3>
+          <div style="position: relative; margin-bottom: 1.5rem">
+            <h3 style="text-align: center; color: #f0f6fc; margin: 0">
+              🎮 Links da Sala
+            </h3>
+            <button
+              id="endGame"
+              onclick="endGame()"
+              style="
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: #21262d;
+                color: #7d8590;
+                border: 1px solid #30363d;
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                font-weight: normal;
+                border-radius: 6px;
+                cursor: pointer;
+                box-shadow: none;
+                transition: all 0.2s ease;
+              "
+              onmouseover="this.style.background='#30363d'; this.style.color='#f85149'"
+              onmouseout="this.style.background='#21262d'; this.style.color='#7d8590'"
+            >
+              🚪 Sair
+            </button>
+          </div>
 
           <div class="link-section">
             <label class="link-label">Link do Administrador</label>
@@ -487,31 +519,6 @@
                 📋 Copiar
               </button>
             </div>
-          </div>
-
-          <div class="link-section">
-            <button
-              id="endGame"
-              onclick="endGame()"
-              style="
-                background: #21262d;
-                color: #7d8590;
-                border: 1px solid #30363d;
-                padding: 0.5rem 1rem;
-                font-size: 0.85rem;
-                font-weight: normal;
-                border-radius: 6px;
-                cursor: pointer;
-                width: auto;
-                float: right;
-                box-shadow: none;
-                transition: all 0.2s ease;
-              "
-              onmouseover="this.style.background='#30363d'; this.style.color='#f85149'"
-              onmouseout="this.style.background='#21262d'; this.style.color='#7d8590'"
-            >
-              🚪 Sair
-            </button>
           </div>
         </div>
 
@@ -709,22 +716,15 @@
       function showCopySuccess(buttonSelector, message) {
         const btn = document.querySelector(buttonSelector);
         const originalText = btn.textContent;
-        const originalBackground = btn.style.background;
 
         btn.textContent = message;
-        if (buttonSelector === ".admin-copy") {
-          btn.style.background = "linear-gradient(135deg, #059669, #10b981)";
-        } else {
-          btn.style.background = "linear-gradient(135deg, #f59e0b, #fbbf24)";
-        }
+        btn.style.background = "#238636";
+        btn.style.color = "white";
 
         setTimeout(() => {
           btn.textContent = originalText;
-          if (buttonSelector === ".admin-copy") {
-            btn.style.background = "linear-gradient(135deg, #7c3aed, #8b5cf6)";
-          } else {
-            btn.style.background = "linear-gradient(135deg, #10b981, #34d399)";
-          }
+          btn.style.background = "#21262d";
+          btn.style.color = "#7d8590";
         }, 2000);
       }
 
