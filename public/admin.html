@@ -488,6 +488,31 @@
               </button>
             </div>
           </div>
+
+          <div class="link-section">
+            <button
+              id="endGame"
+              onclick="endGame()"
+              style="
+                background: #21262d;
+                color: #7d8590;
+                border: 1px solid #30363d;
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+                font-weight: normal;
+                border-radius: 6px;
+                cursor: pointer;
+                width: auto;
+                float: right;
+                box-shadow: none;
+                transition: all 0.2s ease;
+              "
+              onmouseover="this.style.background='#30363d'; this.style.color='#f85149'"
+              onmouseout="this.style.background='#21262d'; this.style.color='#7d8590'"
+            >
+              🚪 Sair
+            </button>
+          </div>
         </div>
 
         <div class="game-controls">
@@ -652,6 +677,17 @@
           }
         } catch (err) {
           fallbackCopyTextToClipboard(gameLink.value, ".game-copy");
+        }
+      }
+
+      function endGame() {
+        if (
+          confirm(
+            "Tem certeza que deseja encerrar a sala? Todos os jogadores serão desconectados."
+          )
+        ) {
+          socket.emit("endGame");
+          window.location.href = "/create.html";
         }
       }
 

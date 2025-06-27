@@ -442,6 +442,25 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("endGame", () => {
+    if (!socket.isAdmin || !socket.room) return;
+
+    const room = socket.room;
+
+    Array.from(room.players.values()).forEach((player) => {
+      const playerSocket = io.sockets.sockets.get(player.id);
+      if (playerSocket) {
+        playerSocket.emit("gameEnded", {
+          message: "O jogo foi encerrado pelo administrador",
+        });
+        playerSocket.disconnect(true);
+      }
+    });
+
+    gameRooms.delete(room.adminToken);
+    socket.disconnect(true);
+  });
+
   socket.on("getPlayerInfo", ({ playerId, gameToken }) => {
     if (!playerId || !gameToken) return;
 

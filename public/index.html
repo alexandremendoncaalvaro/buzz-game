@@ -672,6 +672,11 @@
         window.history.replaceState({}, "", window.location.pathname);
         alert("Você foi removido do jogo pelo administrador.");
       });
+
+      socket.on("gameEnded", ({ message }) => {
+        alert(message);
+        window.location.href = "/create.html";
+      });
     </script>
   </body>
 </html>
