@@ -6,6 +6,10 @@ Esta é uma plataforma flexível para criar jogos de quiz e competição em temp
 
 A versatilidade está na flexibilidade: o "desafio" pode ser qualquer coisa que você apresente aos jogadores - seja compartilhando tela, lendo perguntas ou mostrando vídeos.
 
+##### Exemplo on-line
+
+https://substantial-shaylyn-alexandremendoncaalvaro-3f351127.koyeb.app/
+
 #### Exemplo Prático: "Adivinhe o Filme pela Cena"
 
 Implementei esta dinâmica com sucesso para uma equipe:
