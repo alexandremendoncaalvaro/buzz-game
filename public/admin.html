@@ -360,11 +360,6 @@
         box-shadow: none;
       }
 
-      .admin-link {
-        border-color: #21262d;
-        background: #161b22;
-      }
-
       .game-link {
         border-color: #21262d;
         background: #161b22;
@@ -382,19 +377,6 @@
         min-width: 80px;
         background: #21262d;
         color: #7d8590;
-      }
-
-      .admin-copy {
-        background: #21262d;
-        color: #7d8590;
-        box-shadow: none;
-      }
-
-      .admin-copy:hover {
-        background: #30363d;
-        color: #f0f6fc;
-        transform: none;
-        box-shadow: none;
       }
 
       .game-copy {
@@ -489,21 +471,6 @@
             >
               🚪 Sair
             </button>
-          </div>
-
-          <div class="link-section">
-            <label class="link-label">Link do Administrador</label>
-            <div class="link-input-group">
-              <input
-                type="text"
-                id="adminLink"
-                readonly
-                class="link-input admin-link"
-              />
-              <button onclick="copyAdminLink()" class="copy-btn admin-copy">
-                📋 Copiar
-              </button>
-            </div>
           </div>
 
           <div class="link-section">
@@ -653,23 +620,6 @@
         }
       });
 
-      function copyAdminLink() {
-        const adminLink = document.getElementById("adminLink");
-        adminLink.select();
-        adminLink.setSelectionRange(0, 99999);
-
-        try {
-          const successful = document.execCommand("copy");
-          if (successful) {
-            showCopySuccess(".admin-copy", "✅ Copiado!");
-          } else {
-            fallbackCopyTextToClipboard(adminLink.value, ".admin-copy");
-          }
-        } catch (err) {
-          fallbackCopyTextToClipboard(adminLink.value, ".admin-copy");
-        }
-      }
-
       function copyGameLink() {
         const gameLink = document.getElementById("gameLink");
         gameLink.select();
@@ -730,10 +680,8 @@
 
       function showGameInfo() {
         const baseUrl = `${window.location.protocol}//${window.location.host}`;
-        const adminLink = `${baseUrl}/admin.html?token=${adminToken}&game=${gameToken}`;
         const playerLink = `${baseUrl}/index.html?game=${gameToken}`;
 
-        document.getElementById("adminLink").value = adminLink;
         document.getElementById("gameLink").value = playerLink;
         document.getElementById("gameInfo").style.display = "block";
       }
