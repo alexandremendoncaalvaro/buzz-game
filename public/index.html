@@ -1,66 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buzz Games</title>
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/player.css">
-  <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-  <div class="container container--centered">
-    <div style="width: 100%; max-width: 600px;">
-      <h1 id="gameTitle" class="title">Buzz Games</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buzz Games</title>
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/player.css" />
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="container container--centered">
+      <div style="width: 100%; max-width: 600px">
+        <h1 id="gameTitle" class="title">Buzz Games</h1>
 
-      <div id="login" class="card">
-        <h3>Entre no Jogo</h3>
-        <input id="name" class="input" placeholder="Digite seu nome" />
-        <button id="join" class="btn btn--primary">Entrar</button>
-      </div>
-
-      <div id="game" style="display: none">
-        <div id="playerInfo" class="player-info">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="playerName"></h3>
-            <button id="logout" class="btn btn--danger">🚪 Sair</button>
-          </div>
+        <div id="login" class="card">
+          <h3>Entre no Jogo</h3>
+          <input id="name" class="input" placeholder="Digite seu nome" />
+          <button id="join" class="btn btn--primary">Entrar</button>
         </div>
 
-        <div class="card">
-          <p id="status" class="status">Aguardando rodada...</p>
-          
-          <div id="blockedMessage" class="blocked-message" style="display: none">
-            ❌ Resposta incorreta! Aguarde 
-            <span id="countdown" class="countdown">30</span> 
-            segundos para tentar novamente.
+        <div id="game" style="display: none">
+          <div id="playerInfo" class="player-info">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h3 id="playerName"></h3>
+              <button id="logout" class="btn btn--danger">🚪 Sair</button>
+            </div>
           </div>
-          
-          <div id="buzzContainer" style="display: none; text-align: center;">
-            <button id="buzz" class="btn btn--buzz" disabled>
-              🚨 RESPONDER!
-            </button>
-            <br>
-            <small class="text-muted">
-              Pressione ESPAÇO para acionar o botão de resposta
-            </small>
+
+          <div class="card">
+            <p id="status" class="status">Aguardando rodada...</p>
+
+            <div
+              id="blockedMessage"
+              class="blocked-message"
+              style="display: none"
+            >
+              ❌ Resposta incorreta! Aguarde
+              <span id="countdown" class="countdown">30</span>
+              segundos para tentar novamente.
+            </div>
+
+            <div id="buzzContainer" style="display: none; text-align: center">
+              <button id="buzz" class="btn btn--buzz" disabled>
+                🚨 RESPONDER!
+              </button>
+              <br />
+              <small class="text-muted">
+                Pressione ESPAÇO para acionar o botão de resposta
+              </small>
+            </div>
           </div>
-        </div>
 
-        <div class="card">
-          <h3>🏆 Ranking dos Campeões</h3>
-          <ul id="scores" class="score-list"></ul>
-        </div>
+          <div class="card">
+            <h3>🏆 Ranking dos Campeões</h3>
+            <ul id="scores" class="score-list"></ul>
+          </div>
 
-        <div class="card">
-          <h3>📝 Últimas Rodadas</h3>
-          <ul id="history" class="history-list"></ul>
+          <div class="card">
+            <h3>📝 Últimas Rodadas</h3>
+            <ul id="history" class="history-list"></ul>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script src="/js/game-player.js"></script>
-</body>
+    <script src="/js/game-player.js"></script>
+  </body>
 </html>

@@ -1,46 +1,46 @@
-# CSS Architecture
+# Arquitetura CSS
 
-## Structure
+## Estrutura
 
-The CSS is now organized in a modular fashion following the principles of separation of concerns:
+O CSS foi organizado de forma modular seguindo os princípios de separação de responsabilidades:
 
-### Files Overview
+### Visão Geral dos Arquivos
 
-- **`base.css`** - CSS variables, global reset, base layout, and typography
-- **`components.css`** - Reusable UI components (buttons, cards, inputs, etc.)
-- **`player.css`** - Player-specific styles (index.html)
-- **`creator.css`** - Game creator-specific styles (create.html)  
-- **`admin.css`** - Admin panel-specific styles (admin.html)
+- **`base.css`** - Variáveis CSS, reset global, layout base e tipografia
+- **`components.css`** - Componentes reutilizáveis da UI (botões, cards, inputs, etc.)
+- **`player.css`** - Estilos específicos do jogador (index.html)
+- **`creator.css`** - Estilos específicos do criador de jogos (create.html)
+- **`admin.css`** - Estilos específicos do painel admin (admin.html)
 
-### Usage Pattern
+### Padrão de Uso
 
-Each HTML page imports only the CSS it needs:
+Cada página HTML importa apenas o CSS necessário:
 
 ```html
-<!-- Player page (index.html) -->
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/components.css">
-<link rel="stylesheet" href="/css/player.css">
+<!-- Página do jogador (index.html) -->
+<link rel="stylesheet" href="/css/base.css" />
+<link rel="stylesheet" href="/css/components.css" />
+<link rel="stylesheet" href="/css/player.css" />
 
-<!-- Creator page (create.html) -->
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/components.css">
-<link rel="stylesheet" href="/css/creator.css">
+<!-- Página do criador (create.html) -->
+<link rel="stylesheet" href="/css/base.css" />
+<link rel="stylesheet" href="/css/components.css" />
+<link rel="stylesheet" href="/css/creator.css" />
 
-<!-- Admin page (admin.html) -->
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/components.css">
-<link rel="stylesheet" href="/css/admin.css">
+<!-- Página do admin (admin.html) -->
+<link rel="stylesheet" href="/css/base.css" />
+<link rel="stylesheet" href="/css/components.css" />
+<link rel="stylesheet" href="/css/admin.css" />
 ```
 
-## Benefits
+## Benefícios
 
-1. **Separation of Concerns** - Each file has a specific responsibility
-2. **Maintainability** - Easier to find and modify styles
-3. **Performance** - Only load necessary CSS for each page
-4. **Scalability** - Easy to add new page-specific styles
-5. **Reusability** - Components can be shared across pages
+1. **Separação de Responsabilidades** - Cada arquivo tem uma responsabilidade específica
+2. **Manutenibilidade** - Mais fácil encontrar e modificar estilos
+3. **Performance** - Carrega apenas o CSS necessário para cada página
+4. **Escalabilidade** - Fácil adicionar novos estilos específicos de página
+5. **Reutilização** - Componentes podem ser compartilhados entre páginas
 
 ## Design System
 
-All colors, spacing, and other design tokens are centralized in `base.css` using CSS custom properties (variables), ensuring consistency across the application.
+Todas as cores, espaçamentos e outros tokens de design estão centralizados no `base.css` usando propriedades customizadas do CSS (variáveis), garantindo consistência em toda a aplicação.

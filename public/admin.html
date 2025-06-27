@@ -1,103 +1,109 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Buzz Game</title>
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/components.css">
-  <link rel="stylesheet" href="/css/admin.css">
-  <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-  <div class="container container--admin">
-    <h1 id="gameTitle" class="title title--admin">Admin - Buzz Game</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Buzz Game</title>
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="container container--admin">
+      <h1 id="gameTitle" class="title title--admin">Admin - Buzz Game</h1>
 
-    <div class="game-info">
-      <div class="game-info-content">
-        <div>
-          <strong>Código do Jogo:</strong> 
-          <span id="gameCode" class="game-code">-</span>
+      <div class="game-info">
+        <div class="game-info-content">
+          <div>
+            <strong>Código do Jogo:</strong>
+            <span id="gameCode" class="game-code">-</span>
+          </div>
+          <div class="game-link-section">
+            <input id="gameLink" class="input game-link-input" readonly />
+            <button id="copyLink" class="btn">📋 Copiar Link</button>
+          </div>
         </div>
-        <div class="game-link-section">
-          <input id="gameLink" class="input game-link-input" readonly>
-          <button id="copyLink" class="btn">📋 Copiar Link</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>🎯 Controles da Rodada</h3>
-      
-      <div class="admin-controls">
-        <input 
-          id="secret" 
-          class="input secret-input" 
-          placeholder="Digite a resposta secreta..."
-        >
-        <input 
-          id="maxPoints" 
-          class="input points-input" 
-          type="number" 
-          value="200" 
-          min="10" 
-          max="1000"
-          placeholder="Pontos máximos"
-        >
-        <button id="startRound" class="btn btn--primary">🚀 Iniciar Rodada</button>
-        <button id="cancelRound" class="btn btn--danger" disabled>❌ Cancelar</button>
-      </div>
-
-      <div id="timer" class="timer"></div>
-
-      <div id="buzzedPlayer" class="buzz-alert">
-        🚨 <span></span> apertou o buzzer!
-        <div class="buzz-actions">
-          <button id="correctAnswer" class="btn btn--success">✅ Correto</button>
-          <button id="incorrectAnswer" class="btn btn--danger">❌ Incorreto</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="admin-grid">
-      <div class="card">
-        <h3>👥 Jogadores Conectados</h3>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Pontos</th>
-              <th>Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="scores"></tbody>
-        </table>
       </div>
 
       <div class="card">
-        <h3>📝 Histórico de Rodadas</h3>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Jogador</th>
-              <th>Resultado</th>
-              <th>Pontos</th>
-            </tr>
-          </thead>
-          <tbody id="history"></tbody>
-        </table>
+        <h3>🎯 Controles da Rodada</h3>
+
+        <div class="admin-controls">
+          <input
+            id="secret"
+            class="input secret-input"
+            placeholder="Digite a resposta secreta..."
+          />
+          <input
+            id="maxPoints"
+            class="input points-input"
+            type="number"
+            value="200"
+            min="10"
+            max="1000"
+            placeholder="Pontos máximos"
+          />
+          <button id="startRound" class="btn btn--primary">
+            🚀 Iniciar Rodada
+          </button>
+          <button id="cancelRound" class="btn btn--danger" disabled>
+            ❌ Cancelar
+          </button>
+        </div>
+
+        <div id="timer" class="timer"></div>
+
+        <div id="buzzedPlayer" class="buzz-alert">
+          🚨 <span></span> apertou o buzzer!
+          <div class="buzz-actions">
+            <button id="correctAnswer" class="btn btn--success">
+              ✅ Correto
+            </button>
+            <button id="incorrectAnswer" class="btn btn--danger">
+              ❌ Incorreto
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="card">
+          <h3>👥 Jogadores Conectados</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Pontos</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="scores"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h3>📝 Histórico de Rodadas</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Horário</th>
+                <th>Jogador</th>
+                <th>Resultado</th>
+                <th>Pontos</th>
+              </tr>
+            </thead>
+            <tbody id="history"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card end-game-section">
+        <button id="endGame" class="btn btn--danger">🏁 Encerrar Jogo</button>
       </div>
     </div>
 
-    <div class="card end-game-section">
-      <button id="endGame" class="btn btn--danger">
-        🏁 Encerrar Jogo
-      </button>
-    </div>
-  </div>
-
-  <script src="/js/game-admin.js"></script>
-</body>
+    <script src="/js/game-admin.js"></script>
+  </body>
 </html>

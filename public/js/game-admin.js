@@ -166,6 +166,7 @@ class GameAdmin {
     this.disableStartButton();
     this.enableCancelButton();
     this.clearBuzzedPlayer();
+    this.elements.timerDisplay.textContent = `Tempo: ${maxPoints}s`;
     this.updateStatus("🎯 Rodada em andamento...");
   }
 
