@@ -1,103 +1,86 @@
 ## Buzz Game - Plataforma Multi-Tenant para Jogos Interativos
 
-### 1. Como Funciona (Para Todos)
+### 1. Como Funciona
 
-Esta é uma plataforma flexível para criar jogos de quiz e competição em tempo real. A ideia é simples: um **Admin** cria uma sala privada, apresenta desafios, e os **Jogadores** competem para responder primeiro usando links seguros e únicos. O sistema cuida do tempo, da ordem de quem aperta o "buzz", da pontuação e da segregação entre salas.
+Esta é uma plataforma flexível para criar jogos de quiz e competição em tempo real. A ideia é simples: um **Admin** cria uma sala privada, apresenta desafios, e os **Jogadores** competem para responder primeiro usando links seguros e únicos. O sistema gerencia tempo, ordem de buzz, pontuação e isolamento entre salas.
 
-A beleza está na versatilidade e segurança. Cada sala é completamente isolada, com seus próprios links de acesso. O "desafio" pode ser qualquer coisa que você consiga apresentar para os jogadores, seja compartilhando sua tela, lendo uma pergunta em voz alta ou mostrando um vídeo.
+A versatilidade está na flexibilidade: o "desafio" pode ser qualquer coisa que você apresente aos jogadores - seja compartilhando tela, lendo perguntas ou mostrando vídeos.
 
-#### Exemplo de Jogo: "Adivinhe o Filme pela Cena"
+#### Exemplo Prático: "Adivinhe o Filme pela Cena"
 
-Implementamos esta dinâmica com grande sucesso:
+Implementei esta dinâmica com sucesso para uma equipe:
 
-- **Criação:** O admin acessa `/create.html` e cria uma nova sala, recebendo links únicos.
-- **Preparação:** O admin criou uma apresentação com frames de filmes e séries famosas.
-- **Execução:** Durante videochamada, compartilhou o link dos jogadores e rodou rodadas de 20 segundos para cada slide.
-- **Mecânica:** A "resposta secreta" era o nome do filme/série. Jogadores viam a imagem e competiam pelo buzz.
-- **Resultado:** Diversão garantida e engajamento total da equipe, com total segurança e privacidade!
+- **Preparação:** Criei uma apresentação com frames de filmes e séries famosas
+- **Setup:** Criei uma sala no `/create.html` e distribui o link dos jogadores via videochamada
+- **Dinâmica:** Compartilhei tela mostrando cada frame por 20 segundos
+- **Mecânica:** A "resposta secreta" era o nome do filme/série. Jogadores competiam pelo buzz
+- **Resultado:** Engajamento total da equipe com total segurança e privacidade
 
-#### Para o Administrador (Host)
+### 2. Funcionalidades Principais
 
-- **Criação segura:** Acesse `/create.html` para criar uma nova sala e receber links únicos de admin e jogadores.
-- **Controle total:** Gerencie rodadas através do painel administrativo - inicie, pause e encerre quando necessário.
-- **Configure desafios:** Defina a "resposta secreta" e a pontuação máxima para cada rodada. O desafio em si (imagem, pergunta, vídeo) você apresenta externamente.
-- **Valide respostas:** Receba notificações instantâneas quando alguém der buzz e marque simplesmente "Correto" ou "Incorreto".
-- **Monitore tudo:** Acompanhe placar em tempo real, histórico completo e gerencie participantes.
-- **Compartilhe links:** Copie facilmente o link dos jogadores para distribuir à sua equipe.
+#### Para o Administrador
+
+- **Criar salas personalizadas** com nome customizado e links únicos
+- **Gerenciar rodadas** - iniciar, pausar, cancelar e encerrar
+- **Definir desafios** com resposta secreta e pontuação máxima
+- **Validar respostas** em tempo real - marcar como correto ou incorreto
+- **Monitorar progresso** com placar ao vivo e histórico completo
+- **Controlar participantes** - remover jogadores e encerrar sala
+- **Compartilhar acesso** através de links seguros
 
 #### Para os Jogadores
 
-- **Acesso via link:** Receba o link do jogo do administrador e entre informando apenas seu nome.
-- **Sessão persistente:** Seu progresso é mantido mesmo se você sair e voltar usando o mesmo link personalizado.
-- **Seja rápido:** Quando a rodada começar, o primeiro a apertar "BUZZ" ganha a chance de responder.
-- **Ganhe pontos:** Acerte para pontuar baseado na sua velocidade. Erre e fique bloqueado por 30 segundos.
-- **Acompanhe a disputa:** Veja o placar atualizado e o histórico completo das rodadas em tempo real.
+- **Entrar facilmente** usando link fornecido pelo admin
+- **Manter progresso** mesmo saindo e retornando à sala
+- **Responder rapidamente** com botão BUZZ ou tecla ESPAÇO
+- **Ganhar pontos** baseados na velocidade de resposta
+- **Acompanhar ranking** e histórico em tempo real
+- **Sair voluntariamente** a qualquer momento
 
-### 2. Arquitetura Multi-Tenant
+### 3. Arquitetura Multi-Tenant
 
-O sistema foi projetado para suportar múltiplas salas simultâneas e independentes:
+- **Isolamento total:** Cada sala possui tokens únicos para admin e jogadores
+- **Segurança:** Apenas quem possui o link correto pode acessar uma sala
+- **Escalabilidade:** Suporte para múltiplas salas simultâneas sem interferência
+- **Persistência:** Jogadores mantêm sessão mesmo com desconexões temporárias
 
-- **Isolamento de salas:** Cada jogo possui tokens únicos para admin e jogadores, garantindo total segregação.
-- **Segurança:** Apenas quem possui o link correto pode acessar uma sala específica.
-- **Escalabilidade:** Suporte nativo para múltiplas salas simultâneas sem interferência.
-
-### 3. Infraestrutura
+### 4. Infraestrutura
 
 - **Backend:** Node.js com Express para o servidor web e Socket.IO para comunicação em tempo real.
 - **Frontend:** HTML, CSS e JavaScript puro, com páginas separadas para criação, jogadores e administrador.
-- **Deployment:** Containerizável com Docker.
+- **Deployment:** Containerizável com Docker e Docker Compose para fácil deploy.
 - **Sistema de Salas:** Arquitetura baseada em tokens seguros para isolamento total entre jogos.
-- **Compatibilidade:** Suporta Node.js versão 10.x ou superior (compatível com Glitch.com e outras plataformas).
+- **Compatibilidade:** Suporta Node.js versão 18.x (compatível com plataformas modernas).
+- **Dependências:** Express 4.18.2 e Socket.IO 4.6.1 para máxima estabilidade.
 
-### 4. Como Usar
+### 5. Como Usar
 
-#### Passo a Passo Completo
+#### Guia Rápido
 
-1. **Criação da Sala**
+1. **Criar Sala:** Acesse `/create.html`, opcionalmente defina um nome, clique "Criar Jogo"
+2. **Distribuir:** Copie e compartilhe o link dos jogadores
+3. **Configurar:** Defina resposta secreta e pontuação máxima
+4. **Jogar:** Inicie rodada, jogadores competem pelo buzz, valide respostas
+5. **Repetir:** Continue com novas rodadas ou encerre a sala
 
-   - Acesse `/create.html`
-   - Clique em "Criar Jogo"
-   - Você será redirecionado para o painel de admin com tokens únicos
+### 6. Fluxo de uma Rodada
 
-2. **Configuração do Admin**
-
-   - Na tela de admin, você verá dois links importantes:
-     - **Link do Admin:** Para você acessar futuramente
-     - **Link dos Jogadores:** Para compartilhar com sua equipe
-   - Copie o link dos jogadores e envie para os participantes
-
-3. **Entrada dos Jogadores**
-
-   - Jogadores acessam o link fornecido
-   - Informam seus nomes e entram automaticamente na sala
-
-4. **Execução do Jogo**
-
-   - **Admin:** Define a "resposta secreta" e "pontuação máxima", inicia a rodada
-   - **Jogadores:** Competem para ser o primeiro a dar buzz
-   - **Admin:** Avalia a resposta e marca como correta ou incorreta
-
-5. **Persistência**
-   - Links permanecem válidos durante toda a sessão
-   - Jogadores podem sair e voltar mantendo sua pontuação
-   - Admin pode fechar e reabrir o painel usando seu link
-
-### 5. Fluxo de Jogo
-
-1. **Criação:** Admin cria sala e recebe links únicos
-2. **Distribuição:** Admin compartilha link dos jogadores
-3. **Entrada:** Participantes acessam via link e informam nomes
-4. **Início da Rodada:** Admin define resposta secreta e pontuação máxima
-5. **Buzz:** Primeiro jogador a pressionar "BUZZ" ganha chance de responder
-6. **Validação:** Admin escuta resposta e marca como correta/incorreta
-   - **Acerto:** Jogador ganha pontos, rodada termina, resposta revelada
+1. **Admin inicia:** Define resposta secreta e pontuação máxima
+2. **Rodada ativa:** Jogadores podem dar buzz (botão ou ESPAÇO)
+3. **Primeiro buzz:** Jogador ganha chance de responder
+4. **Validação:** Admin marca como correto ou incorreto
+   - **Acerto:** Jogador ganha pontos, rodada termina
    - **Erro:** Jogador bloqueado 30s, rodada continua
-7. **Final:** Termina quando alguém acerta, tempo esgota ou admin cancela
-8. **Repetição:** Processo se repete para próximas rodadas
+5. **Fim:** Alguém acerta, tempo esgota ou admin cancela
 
-### 6. Diagramas de Fluxo
+### 7. Regras e Pontuação
 
-Os diagramas a seguir mostram como funciona a comunicação entre os componentes e a lógica das rodadas na arquitetura multi-tenant.
+- **Cálculo:** Pontos = Máximo - Segundos Decorridos
+- **Velocidade recompensada:** Quanto mais rápido, maior a pontuação
+- **Bloqueio por erro:** 30 segundos sem poder dar buzz após resposta incorreta
+- **Privacidade:** Resposta secreta só revelada quando alguém acerta
+
+### 8. Diagramas Técnicos
 
 #### Fluxo de Comunicação Multi-Tenant
 
@@ -247,24 +230,42 @@ flowchart TD
 | `roundReset`      | Servidor | Todos    | -                                                      | Sinaliza o fim da rodada, resetando a interface dos jogadores.                             |
 | `cancelRound`     | Admin    | Servidor | -                                                      | Solicita o cancelamento da rodada atual.                                                   |
 | `removePlayer`    | Admin    | Servidor | `{ playerId }`                                         | Remove um jogador do jogo.                                                                 |
+| `endGame`         | Admin    | Servidor | -                                                      | Encerra completamente a sala e desconecta todos os jogadores.                              |
+| `gameEnded`       | Servidor | Jogador  | `{ message }`                                          | Notifica um jogador que o jogo foi encerrado pelo administrador.                           |
+| `logout`          | Jogador  | Servidor | -                                                      | Jogador solicita sair voluntariamente do jogo.                                             |
+| `getPlayerInfo`   | Cliente  | Servidor | `{ playerId, gameToken }`                              | Solicita informações de um jogador específico (usado para reconexão).                      |
+| `playerInfo`      | Servidor | Cliente  | `{ name }`                                             | Retorna informações de um jogador (resposta para `getPlayerInfo`).                         |
 | `forceLogout`     | Servidor | Jogador  | -                                                      | Desconecta um jogador do jogo (usado após `removePlayer`).                                 |
 
-### 7. Regras de Pontuação e Bloqueio
+### 9. Controles e Interação
 
-- **Cálculo de Pontos:** `Pontos = Máximo - SegundosDecorridos`. Quanto mais rápido, maior a pontuação.
-- **Bloqueio por Erro:** Jogador que erra fica 30 segundos sem poder usar o buzz, dando oportunidade aos demais.
-- **Privacidade:** A resposta secreta só é revelada ao final da rodada, e apenas se alguém acertar.
+#### Controles de Teclado
 
-### 8. Setup e Deploy
+- **Tecla ESPAÇO:** Os jogadores podem usar a tecla ESPAÇO como alternativa ao botão "BUZZ" para responder mais rapidamente
+- **Enter:** Funciona para criar sala na tela inicial e confirmar nome do jogador
 
-#### Opção 1: Usando Docker (Localmente)
+#### Interface Responsiva
+
+- **Design adaptativo:** Funciona perfeitamente em desktop, tablet e mobile
+- **Botões otimizados:** Tamanhos adequados para touch em dispositivos móveis
+- **Cores neutras:** Interface com esquema de cores escuro e elegante para reduzir fadiga visual
+
+### 10. Setup e Deploy
+
+#### Opção 1: Usando Docker Compose (Recomendado)
+
+1. Clone o repositório.
+2. Execute: `docker-compose up -d`
+3. A aplicação estará disponível em `http://localhost:3333/create.html`
+
+#### Opção 2: Usando Docker (Localmente)
 
 1. Clone o repositório.
 2. Construa a imagem Docker: `docker build -t buzz-game .`
 3. Execute o container: `docker run -d -p 3000:3000 buzz-game`
 4. Acesse a aplicação em `http://localhost:3000/create.html`
 
-#### Opção 2: Deploy Gratuito com Glitch
+#### Opção 3: Deploy Gratuito com Glitch
 
 Alternativa simples para testar e hospedar online gratuitamente:
 
@@ -273,20 +274,20 @@ Alternativa simples para testar e hospedar online gratuitamente:
 3. **Deploy:** O Glitch instala dependências e inicia automaticamente. Você recebe uma URL pública.
 4. **Acesso:** `https://seu-projeto.glitch.me/create.html`
 
-#### Opção 3: Desenvolvimento Local
+#### Opção 4: Desenvolvimento Local
 
 1. Clone o repositório
 2. Instale dependências: `npm install`
 3. Inicie o servidor: `npm start`
 4. Acesse `http://localhost:3000/create.html`
 
-### 9. Fluxo de URLs
+### 11. Fluxo de URLs
 
 - **`/create.html`** - Página inicial para criar novas salas
 - **`/admin.html?token={adminToken}&game={gameToken}`** - Painel do administrador
 - **`/index.html?game={gameToken}&id={playerId}`** - Interface dos jogadores
 
-### 10. Segurança e Privacidade
+### 12. Segurança e Privacidade
 
 - **Isolamento:** Cada sala é completamente isolada das demais
 - **Tokens únicos:** Acesso controlado via tokens seguros gerados aleatoriamente
