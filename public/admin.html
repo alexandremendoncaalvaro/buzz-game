@@ -417,17 +417,33 @@
         .copy-btn {
           min-width: 100%;
         }
-        input {
-          min-width: 100%;
-          margin: 0.5rem 0;
-        }
         #secret {
           min-width: 100%;
           max-width: 100%;
         }
         #maxPts {
+          min-width: 100% !important;
+          max-width: 100% !important;
+          width: 100% !important;
+        }
+        .controls-row > div:first-child {
+          flex: none !important;
+          width: 100% !important;
+          min-width: 100% !important;
+        }
+        .controls-row > div:last-child {
+          flex-direction: column;
+          width: 100%;
+        }
+        .button-container {
+          flex-direction: column !important;
+          width: 100% !important;
+        }
+        #start,
+        #cancel {
           min-width: 100%;
-          max-width: 100%;
+          width: 100%;
+          margin: 0.5rem 0;
         }
         body {
           padding: 1rem;
@@ -542,7 +558,7 @@
                   placeholder="200"
                 />
               </div>
-              <div style="display: flex; gap: 1rem">
+              <div class="button-container" style="display: flex; gap: 1rem">
                 <button id="start">▶️ Iniciar Rodada</button>
                 <button id="cancel" style="display: none">
                   ❌ Cancelar Rodada
