@@ -269,16 +269,36 @@ flowchart TD
 3. Execute o container: `docker run -d -p 3000:3000 buzz-game`
 4. Acesse a aplicação em `http://localhost:3000/create.html`
 
-#### Opção 3: Deploy Gratuito com Glitch
+#### Opção 3: Deploy Gratuito com Koyeb (Recomendado)
 
-Alternativa simples para testar e hospedar online gratuitamente:
+**Melhor opção gratuita** para hospedar o Buzz Game online com excelente performance:
+
+1. **Cadastro:** Acesse [app.koyeb.com](https://app.koyeb.com/auth/signup) e crie conta (não precisa cartão)
+2. **Conectar:** Conecte seu repositório GitHub
+3. **Deploy:** Koyeb detecta automaticamente o Dockerfile e faz deploy
+4. **Acesso:** Você recebe uma URL pública: `https://seu-app.koyeb.app/create.html`
+
+**Vantagens do Koyeb:**
+
+- ✅ Completamente gratuito (1 Web Service)
+- ✅ WebSocket/Socket.IO funcionam perfeitamente
+- ✅ Deploy automático via Git
+- ✅ Não "dorme" como outras plataformas
+- ✅ Interface moderna e estável
+- ✅ Suporte nativo ao Docker
+
+#### Opção 4: Deploy Gratuito com Glitch (Alternativa)
+
+Opção simples, mas com limitações de performance:
 
 1. **Fork:** Crie um fork deste repositório na sua conta GitHub.
 2. **Importe:** Acesse [glitch.com](https://glitch.com), crie novo projeto e escolha "Import from GitHub".
 3. **Deploy:** O Glitch instala dependências e inicia automaticamente. Você recebe uma URL pública.
 4. **Acesso:** `https://seu-projeto.glitch.me/create.html`
 
-#### Opção 4: Desenvolvimento Local
+**Limitações do Glitch:** Pode ter instabilidades de build e performance inferior ao Koyeb.
+
+#### Opção 5: Desenvolvimento Local
 
 1. Clone o repositório
 2. Instale dependências: `npm install`
