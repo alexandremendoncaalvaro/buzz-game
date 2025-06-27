@@ -1,933 +1,204 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin - Buzz Game</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Buzz Game</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-lg);
+      margin-top: var(--spacing-lg);
+    }
 
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
-          Helvetica, Arial, sans-serif;
-        background: #0d1117;
-        min-height: 100vh;
-        color: #f0f6fc;
-        padding: 2rem;
-        background-image: radial-gradient(
-            circle at 25% 25%,
-            #161b22 0%,
-            transparent 50%
-          ),
-          radial-gradient(circle at 75% 75%, #21262d 0%, transparent 50%);
-      }
+    .admin-controls {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--spacing-md);
+    }
 
-      h1 {
-        text-align: center;
-        font-size: 2.5rem;
-        margin-bottom: 2rem;
-        background: linear-gradient(
-          135deg,
-          rgb(135, 70, 248),
-          rgb(125, 60, 238)
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: 600;
-        text-shadow: 0 0 20px rgba(135, 70, 248, 0.3);
-      }
+    .table th,
+    .table td {
+      padding: var(--spacing-md);
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
 
-      .card {
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        transition: all 0.2s ease;
-      }
+    .table th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+    }
 
-      .card:hover {
-        border-color: #58a6ff;
-        box-shadow: 0 8px 32px rgba(88, 166, 255, 0.1);
-      }
+    .table .leader {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
+      border-left: 3px solid #ffd700;
+    }
 
-      .controls {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-      }
+    .buzz-alert {
+      background: var(--accent-yellow);
+      color: var(--bg-tertiary);
+      padding: var(--spacing-lg);
+      border-radius: var(--border-radius);
+      text-align: center;
+      margin: var(--spacing-md) 0;
+      font-weight: bold;
+      display: none;
+    }
 
-      .controls-row {
-        display: flex;
-        gap: 1rem;
-        width: 100%;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
+    .buzz-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      justify-content: center;
+      margin-top: var(--spacing-md);
+    }
 
-      input {
-        padding: 1rem 1.25rem;
-        font-size: 1.1rem;
-        border: 1px solid #30363d;
-        border-radius: 8px;
-        background: #21262d;
-        color: #f0f6fc;
-        min-width: 200px;
-        transition: all 0.2s ease;
-        min-height: 48px;
-      }
+    .btn--success {
+      background: #28a745;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
 
-      #secret {
-        min-width: 100%;
-        flex: 1;
-        max-width: 100%;
-        font-size: 1.2rem;
-        padding: 1.25rem;
-        text-align: left;
-      }
+    .btn--success:hover {
+      background: #218838;
+      box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+    }
 
-      #maxPts {
-        min-width: 200px;
-        max-width: 200px;
-        text-align: center;
-      }
+    .btn--small {
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 0.9rem;
+    }
 
-      input:focus {
-        outline: none;
-        border-color: #58a6ff;
-        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
-        background: #262c36;
-      }
+    .game-info {
+      background: var(--bg-tertiary);
+      padding: var(--spacing-md);
+      border-radius: var(--border-radius);
+      margin-bottom: var(--spacing-lg);
+    }
 
-      button {
-        background: linear-gradient(135deg, #58a6ff, #a5a6ff);
-        color: white;
-        border: none;
-        padding: 0.8rem 1.5rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
-      }
+    .timer {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--accent-yellow);
+      text-align: center;
+      margin: var(--spacing-md) 0;
+    }
 
-      button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(88, 166, 255, 0.4);
-        background: linear-gradient(135deg, #479cf0, #9a9bff);
+    @media (max-width: 768px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
       }
-
-      #start {
-        background: rgb(255, 198, 41);
-        font-size: 1.2rem;
-        padding: 1rem 2rem;
-        box-shadow: 0 6px 20px rgba(255, 198, 41, 0.4);
-        color: #21262d;
-        font-weight: 700;
-      }
-
-      #start:hover {
-        background: rgb(245, 188, 31);
-        box-shadow: 0 8px 24px rgba(255, 198, 41, 0.5);
-        transform: translateY(-2px);
-      }
-
-      #cancel {
-        background: linear-gradient(135deg, #9e6a03, #bf8700);
-        box-shadow: 0 4px 12px rgba(158, 106, 3, 0.3);
-      }
-
-      #cancel:hover {
-        background: linear-gradient(135deg, #8b5cf6, #a855f7);
-        box-shadow: 0 6px 16px rgba(158, 106, 3, 0.4);
-      }
-
-      .correct {
-        background: linear-gradient(135deg, #238636, #2ea043);
-        box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
-      }
-
-      .correct:hover {
-        background: linear-gradient(135deg, #1f7a2e, #2d8f47);
-        box-shadow: 0 6px 16px rgba(35, 134, 54, 0.4);
-      }
-
-      .incorrect {
-        background: linear-gradient(135deg, #da3633, #f85149);
-        box-shadow: 0 4px 12px rgba(218, 54, 51, 0.3);
-      }
-
-      .incorrect:hover {
-        background: linear-gradient(135deg, #c93026, #ff6b6b);
-        box-shadow: 0 6px 16px rgba(218, 54, 51, 0.4);
-      }
-
-      .round-status {
-        text-align: center;
-        background: rgba(35, 134, 54, 0.2);
-        border: 1px solid #238636;
-        border-radius: 12px;
-        padding: 1rem;
-        color: #7ee787;
-      }
-
-      .buzz-section {
-        text-align: center;
-        background: rgba(158, 106, 3, 0.2);
-        border: 1px solid #9e6a03;
-        border-radius: 12px;
-        padding: 1.5rem;
-        color: #f2cc60;
-      }
-
-      .buzz-section h3 {
-        color: #f2cc60;
-        margin-bottom: 1rem;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-      }
-
-      .score-list,
-      .history-list {
-        list-style: none;
-        max-height: 400px;
-        overflow-y: auto;
-        gap: 0.5rem;
-        display: flex;
+      
+      .admin-controls {
         flex-direction: column;
-      }
-
-      .score-list li {
-        background: #21262d;
-        border: 1px solid #30363d;
-        margin: 0;
-        padding: 1rem;
-        border-radius: 8px;
-        font-size: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .score-list li:hover {
-        border-color: #58a6ff;
-        background: #262c36;
-        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
-      }
-
-      .score-list li:first-child {
-        font-size: 1.1rem;
-        font-weight: bold;
-      }
-
-      @keyframes scoreUpdate {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      .score-updated {
-        animation: scoreUpdate 0.6s ease;
-      }
-
-      .score-list li.blocked {
-        background: rgba(218, 54, 51, 0.2);
-        border-color: #da3633;
-      }
-
-      .blocked-indicator {
-        background: #da3633;
-        color: white;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        margin-left: 0.5rem;
-        border: 1px solid #f85149;
-      }
-
-      .remove-player {
-        background: #21262d;
-        color: #7d8590;
-        border: 1px solid #30363d;
-        padding: 0.3rem 0.6rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        margin-left: 10px;
-        transition: all 0.2s ease;
-        box-shadow: none;
-        font-weight: normal;
-      }
-
-      .remove-player:hover {
-        background: #30363d;
-        color: #f85149;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .history-list li {
-        background: #161b22;
-        border: 1px solid #21262d;
-        margin: 0.3rem 0;
-        padding: 0.6rem;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        color: #7d8590;
-        transition: all 0.2s ease;
-      }
-
-      .history-list li:hover {
-        background: #21262d;
-        color: #f0f6fc;
-      }
-
-      .history-list li[style*="red"] {
-        background: rgba(218, 54, 51, 0.2);
-        border-color: #da3633;
-        color: #ffa198;
-      }
-
-      h3 {
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
-        text-align: center;
-      }
-
-      .link-section {
-        margin-bottom: 0.75rem;
-      }
-
-      .link-label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: normal;
-        color: #6e7681;
-        margin-bottom: 0.25rem;
-      }
-
-      .link-input-group {
-        display: flex;
-        gap: 0.75rem;
         align-items: stretch;
       }
-
-      .link-input {
-        flex: 1;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-        border: 1px solid #21262d;
-        border-radius: 6px;
-        background: #161b22;
-        color: #7d8590;
-        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
-        transition: all 0.2s ease;
+      
+      .table {
+        font-size: 0.9rem;
       }
+    }
+  </style>
+</head>
+<body>
+  <div class="container container--admin">
+    <h1 id="gameTitle" class="title title--admin">Admin - Buzz Game</h1>
 
-      .link-input:focus {
-        outline: none;
-        border-color: #30363d;
-        color: #f0f6fc;
-        box-shadow: none;
-      }
-
-      .admin-link {
-        border-color: #21262d;
-        background: #161b22;
-      }
-
-      .game-link {
-        border-color: #21262d;
-        background: #161b22;
-      }
-
-      .copy-btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        font-weight: normal;
-        border-radius: 6px;
-        border: 1px solid #30363d;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-        min-width: 80px;
-        background: #21262d;
-        color: #7d8590;
-      }
-
-      .admin-copy {
-        background: #21262d;
-        color: #7d8590;
-        box-shadow: none;
-      }
-
-      .admin-copy:hover {
-        background: #30363d;
-        color: #f0f6fc;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .game-copy {
-        background: #21262d;
-        color: #7d8590;
-        box-shadow: none;
-      }
-
-      .game-copy:hover {
-        background: #30363d;
-        color: #f0f6fc;
-        transform: none;
-        box-shadow: none;
-      }
-
-      .game-controls {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid #30363d;
-      }
-
-      @media (max-width: 768px) {
-        .grid {
-          grid-template-columns: 1fr;
-          gap: 1rem;
-        }
-        .controls {
-          flex-direction: column;
-        }
-        .controls-row {
-          flex-direction: column;
-          width: 100%;
-        }
-        .link-input-group {
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        .copy-btn {
-          min-width: 100%;
-        }
-        input {
-          min-width: 100%;
-          margin: 0.5rem 0;
-        }
-        #secret {
-          min-width: 100%;
-          max-width: 100%;
-        }
-        #maxPts {
-          min-width: 100%;
-          max-width: 100%;
-        }
-        body {
-          padding: 1rem;
-        }
-        h1 {
-          font-size: 2rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1 id="roomTitle">Admin - Buzz Games</h1>
-
-      <div class="card">
-        <div id="gameInfo" style="display: none">
-          <div style="position: relative; margin-bottom: 1.5rem">
-            <h3 style="text-align: center; color: #f0f6fc; margin: 0">
-              🎮 Links da Sala
-            </h3>
-            <button
-              id="endGame"
-              onclick="endGame()"
-              style="
-                position: absolute;
-                top: 0;
-                right: 0;
-                background: #21262d;
-                color: #7d8590;
-                border: 1px solid #30363d;
-                padding: 0.5rem 1rem;
-                font-size: 0.85rem;
-                font-weight: normal;
-                border-radius: 6px;
-                cursor: pointer;
-                box-shadow: none;
-                transition: all 0.2s ease;
-              "
-              onmouseover="this.style.background='#30363d'; this.style.color='#f85149'"
-              onmouseout="this.style.background='#21262d'; this.style.color='#7d8590'"
-            >
-              🚪 Sair
-            </button>
-          </div>
-
-          <div class="link-section">
-            <label class="link-label">Link do Administrador</label>
-            <div class="link-input-group">
-              <input
-                type="text"
-                id="adminLink"
-                readonly
-                class="link-input admin-link"
-              />
-              <button onclick="copyAdminLink()" class="copy-btn admin-copy">
-                📋 Copiar
-              </button>
-            </div>
-          </div>
-
-          <div class="link-section">
-            <label class="link-label">Link dos Jogadores</label>
-            <div class="link-input-group">
-              <input
-                type="text"
-                id="gameLink"
-                readonly
-                class="link-input game-link"
-              />
-              <button onclick="copyGameLink()" class="copy-btn game-copy">
-                📋 Copiar
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="game-controls">
-          <h3 style="text-align: center; color: #f0f6fc; margin-bottom: 1.5rem">
-            ⚙️ Controles do Jogo
-          </h3>
-
-          <div class="controls">
-            <div class="controls-row" style="width: 100%; margin-bottom: 1rem">
-              <label
-                for="secret"
-                style="
-                  display: block;
-                  font-weight: 600;
-                  color: #8b949e;
-                  margin-bottom: 0.5rem;
-                  font-size: 1rem;
-                "
-              >
-                Resposta Correta
-              </label>
-              <input
-                id="secret"
-                placeholder="Digite a resposta que os jogadores devem acertar"
-              />
-            </div>
-            <div
-              class="controls-row"
-              style="
-                display: flex;
-                gap: 1rem;
-                align-items: end;
-                flex-wrap: wrap;
-              "
-            >
-              <div style="flex: 1; min-width: 200px">
-                <label
-                  for="maxPts"
-                  style="
-                    display: block;
-                    font-weight: 600;
-                    color: #8b949e;
-                    margin-bottom: 0.5rem;
-                    font-size: 1rem;
-                  "
-                >
-                  Pontos/Segundos Máximos
-                </label>
-                <input
-                  id="maxPts"
-                  type="number"
-                  value="200"
-                  placeholder="200"
-                />
-              </div>
-              <div style="display: flex; gap: 1rem">
-                <button id="start">▶️ Iniciar Rodada</button>
-                <button id="cancel" style="display: none">
-                  ❌ Cancelar Rodada
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="roundStatus" class="round-status" style="display: none">
-        <h3>🎯 Rodada Ativa</h3>
-        <p id="currentRound"></p>
-        <p
-          id="roundTimer"
-          style="
-            font-size: 1.5rem;
-            color: #f2cc60;
-            font-weight: bold;
-            margin: 1rem 0;
-          "
-        ></p>
-      </div>
-
-      <div id="buzzSection" class="buzz-section" style="display: none">
-        <h3 id="buzzPlayer"></h3>
+    <div class="game-info">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
         <div>
-          <button id="correct" class="correct">✅ Correto</button>
-          <button id="incorrect" class="incorrect">❌ Incorreto</button>
+          <strong>Código do Jogo:</strong> 
+          <span id="gameCode" style="font-family: monospace; font-size: 1.2rem;">-</span>
         </div>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <h3>🏆 Ranking dos Campeões</h3>
-          <ul id="scores" class="score-list"></ul>
-        </div>
-
-        <div class="card">
-          <h3>📚 Histórico</h3>
-          <ul id="history" class="history-list"></ul>
+        <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+          <input id="gameLink" class="input" style="width: 300px;" readonly>
+          <button id="copyLink" class="btn">📋 Copiar Link</button>
         </div>
       </div>
     </div>
-    <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const adminToken = urlParams.get("token");
-      const gameToken = urlParams.get("game");
 
-      if (!adminToken || !gameToken) {
-        alert("Token de admin inválido. Redirecionando...");
-        window.location.href = "/create.html";
-      }
+    <div class="card">
+      <h3>🎯 Controles da Rodada</h3>
+      
+      <div class="admin-controls">
+        <input 
+          id="secret" 
+          class="input" 
+          placeholder="Digite a resposta secreta..." 
+          style="flex: 1; min-width: 250px;"
+        >
+        <input 
+          id="maxPoints" 
+          class="input" 
+          type="number" 
+          value="200" 
+          min="10" 
+          max="1000"
+          placeholder="Pontos máximos"
+          style="width: 150px;"
+        >
+        <button id="startRound" class="btn btn--primary">🚀 Iniciar Rodada</button>
+        <button id="cancelRound" class="btn btn--danger" disabled>❌ Cancelar</button>
+      </div>
 
-      const socket = io();
-      let currentBuzzPlayer = null;
+      <div id="timer" class="timer"></div>
 
-      socket.emit("admin-join", { adminToken });
+      <div id="buzzedPlayer" class="buzz-alert">
+        🚨 <span></span> apertou o buzzer!
+        <div class="buzz-actions">
+          <button id="correctAnswer" class="btn btn--success">✅ Correto</button>
+          <button id="incorrectAnswer" class="btn btn--danger">❌ Incorreto</button>
+        </div>
+      </div>
+    </div>
 
-      socket.on("joined", ({ gameToken: receivedGameToken, roomTitle }) => {
-        if (roomTitle) {
-          document.getElementById(
-            "roomTitle"
-          ).textContent = `Admin - ${roomTitle}`;
-          document.title = `Admin - ${roomTitle}`;
-        }
-        showGameInfo();
-      });
+    <div class="admin-grid">
+      <div class="card">
+        <h3>👥 Jogadores Conectados</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Pontos</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="scores"></tbody>
+        </table>
+      </div>
 
-      socket.on("error", ({ message }) => {
-        console.error("Erro de socket:", message);
-        if (message.includes("não encontrada")) {
-          alert(`Erro: ${message}. Redirecionando...`);
-          window.location.href = "/create.html";
-        }
-      });
+      <div class="card">
+        <h3>📝 Histórico de Rodadas</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Jogador</th>
+              <th>Resultado</th>
+              <th>Pontos</th>
+            </tr>
+          </thead>
+          <tbody id="history"></tbody>
+        </table>
+      </div>
+    </div>
 
-      function copyAdminLink() {
-        const adminLink = document.getElementById("adminLink");
-        adminLink.select();
-        adminLink.setSelectionRange(0, 99999);
+    <div class="card" style="text-align: center; margin-top: var(--spacing-lg);">
+      <button id="endGame" class="btn btn--danger">
+        🏁 Encerrar Jogo
+      </button>
+    </div>
+  </div>
 
-        try {
-          const successful = document.execCommand("copy");
-          if (successful) {
-            showCopySuccess(".admin-copy", "✅ Copiado!");
-          } else {
-            fallbackCopyTextToClipboard(adminLink.value, ".admin-copy");
-          }
-        } catch (err) {
-          fallbackCopyTextToClipboard(adminLink.value, ".admin-copy");
-        }
-      }
-
-      function copyGameLink() {
-        const gameLink = document.getElementById("gameLink");
-        gameLink.select();
-        gameLink.setSelectionRange(0, 99999);
-
-        try {
-          const successful = document.execCommand("copy");
-          if (successful) {
-            showCopySuccess(".game-copy", "✅ Copiado!");
-          } else {
-            fallbackCopyTextToClipboard(gameLink.value, ".game-copy");
-          }
-        } catch (err) {
-          fallbackCopyTextToClipboard(gameLink.value, ".game-copy");
-        }
-      }
-
-      function endGame() {
-        if (
-          confirm(
-            "Tem certeza que deseja encerrar a sala? Todos os jogadores serão desconectados."
-          )
-        ) {
-          socket.emit("endGame");
-          window.location.href = "/create.html";
-        }
-      }
-
-      function fallbackCopyTextToClipboard(text, buttonSelector) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(text)
-            .then(() => {
-              showCopySuccess(buttonSelector, "✅ Copiado!");
-            })
-            .catch(() => {
-              showCopySuccess(buttonSelector, "⚠️ Copie manualmente");
-            });
-        } else {
-          showCopySuccess(buttonSelector, "⚠️ Copie manualmente");
-        }
-      }
-
-      function showCopySuccess(buttonSelector, message) {
-        const btn = document.querySelector(buttonSelector);
-        const originalText = btn.textContent;
-
-        btn.textContent = message;
-        btn.style.background = "#238636";
-        btn.style.color = "white";
-
-        setTimeout(() => {
-          btn.textContent = originalText;
-          btn.style.background = "#21262d";
-          btn.style.color = "#7d8590";
-        }, 2000);
-      }
-
-      function showGameInfo() {
-        const baseUrl = `${window.location.protocol}//${window.location.host}`;
-        const adminLink = `${baseUrl}/admin.html?token=${adminToken}&game=${gameToken}`;
-        const playerLink = `${baseUrl}/index.html?game=${gameToken}`;
-
-        document.getElementById("adminLink").value = adminLink;
-        document.getElementById("gameLink").value = playerLink;
-        document.getElementById("gameInfo").style.display = "block";
-      }
-
-      document.getElementById("start").onclick = () => {
-        const secret = document.getElementById("secret").value.trim();
-        const maxPoints = +document.getElementById("maxPts").value;
-        if (!secret) return alert("Digite a resposta correta!");
-        socket.emit("startRound", { secretAnswer: secret, maxPoints });
-      };
-
-      document.getElementById("cancel").onclick = () => {
-        socket.emit("cancelRound");
-      };
-
-      document.getElementById("correct").onclick = () => {
-        if (currentBuzzPlayer) {
-          socket.emit("answerResult", {
-            playerId: currentBuzzPlayer,
-            correct: true,
-          });
-          document.getElementById("buzzSection").style.display = "none";
-        }
-      };
-
-      document.getElementById("incorrect").onclick = () => {
-        if (currentBuzzPlayer) {
-          socket.emit("answerResult", {
-            playerId: currentBuzzPlayer,
-            correct: false,
-          });
-          document.getElementById("buzzSection").style.display = "none";
-        }
-      };
-
-      socket.on("scoreUpdate", (board) => {
-        const ul = document.getElementById("scores");
-        const previousScores = new Map();
-
-        Array.from(ul.children).forEach((li) => {
-          const nameElement = li.querySelector("[data-player-name]");
-          if (nameElement) {
-            const name = nameElement.textContent;
-            const scoreText =
-              li.querySelector("[data-score]")?.textContent || "0";
-            const score = parseInt(scoreText.replace(/\D/g, "")) || 0;
-            previousScores.set(name, score);
-          }
-        });
-
-        ul.innerHTML = "";
-
-        const sortedBoard = board.sort((a, b) => b.score - a.score);
-
-        sortedBoard.forEach((p, index) => {
-          const li = document.createElement("li");
-
-          const previousScore = previousScores.get(p.name) || 0;
-          const scoreChanged = previousScore !== p.score;
-          const scoreIncreased = p.score > previousScore;
-
-          if (p.blocked) {
-            li.className = "blocked";
-          }
-
-          let position = "";
-          let emoji = "";
-          switch (index) {
-            case 0:
-              position = "1º";
-              emoji = "🥇";
-              break;
-            case 1:
-              position = "2º";
-              emoji = "🥈";
-              break;
-            case 2:
-              position = "3º";
-              emoji = "🥉";
-              break;
-            default:
-              position = `${index + 1}º`;
-              emoji = "🏃‍♂️";
-          }
-
-          const blockedInfo = p.blocked
-            ? `<span class="blocked-indicator">Bloqueado: ${p.blockedTime}s</span>`
-            : "";
-
-          const scoreDisplay = p.score > 0 ? `${p.score} pts` : "0 pts";
-
-          li.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-              <span style="font-size: 1.2em;">${emoji}</span>
-              <span style="font-weight: bold; color: #58a6ff;">${position}</span>
-              <span data-player-name><strong>${p.name}</strong></span>
-              ${blockedInfo}
-            </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <span style="font-weight: bold; color: ${
-                p.score > 0 ? "#7c3aed" : "#6b7280"
-              };" data-score>
-                ${scoreDisplay}
-              </span>
-              <button class="remove-player" data-player-id="${
-                p.playerId || p.id
-              }">🗑️ Remover</button>
-            </div>
-          `;
-
-          if (index === 0 && p.score > 0) {
-            li.style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
-            li.style.border = "2px solid #fbbf24";
-            li.style.boxShadow = "0 4px 12px rgba(251, 191, 36, 0.3)";
-          }
-
-          if (scoreIncreased) {
-            li.classList.add("score-updated");
-            setTimeout(() => li.classList.remove("score-updated"), 600);
-          }
-
-          ul.appendChild(li);
-        });
-
-        document.querySelectorAll(".remove-player").forEach((button) => {
-          button.onclick = (e) => {
-            const playerId = e.target.getAttribute("data-player-id");
-            if (confirm("Tem certeza que deseja remover este jogador?")) {
-              socket.emit("removePlayer", { playerId });
-            }
-          };
-        });
-      });
-
-      socket.on("buzzed", ({ playerId, name }) => {
-        currentBuzzPlayer = playerId;
-        document.getElementById(
-          "buzzPlayer"
-        ).textContent = `${name} fez buzz! A resposta está correta?`;
-        document.getElementById("buzzSection").style.display = "block";
-      });
-
-      socket.on("historyUpdate", (history) => {
-        const ul = document.getElementById("history");
-        ul.innerHTML = "";
-        history.forEach((round) => {
-          const li = document.createElement("li");
-          if (round.cancelled) {
-            li.textContent = `${round.timestamp} - Rodada cancelada [${round.secret}]`;
-            li.style.color = "red";
-          } else if (round.timeout) {
-            li.textContent = `${round.timestamp} - Tempo esgotado [${round.secret}]`;
-            li.style.color = "orange";
-          } else {
-            const status = round.correct ? "✓" : "✗";
-            const points = round.correct ? `(+${round.points}pts)` : "";
-            li.textContent = `${round.timestamp} - ${round.playerName}: ${status} ${points} [${round.secret}]`;
-          }
-          ul.appendChild(li);
-        });
-      });
-
-      socket.on("roundStarted", ({ secret, maxPoints }) => {
-        document.getElementById("roundStatus").style.display = "block";
-        document.getElementById(
-          "currentRound"
-        ).textContent = `Pergunta: ${secret} | Máximo: ${maxPoints} pontos`;
-        document.getElementById("start").style.display = "none";
-        document.getElementById("cancel").style.display = "inline";
-        document.getElementById("secret").value = "";
-      });
-
-      socket.on("roundReset", () => {
-        document.getElementById("roundStatus").style.display = "none";
-        document.getElementById("buzzSection").style.display = "none";
-        document.getElementById("start").style.display = "inline";
-        document.getElementById("cancel").style.display = "none";
-        document.getElementById("roundTimer").textContent = "";
-      });
-
-      socket.on("roundTimer", ({ remaining }) => {
-        document.getElementById(
-          "roundTimer"
-        ).textContent = `⏱️ Tempo restante: ${remaining}s`;
-      });
-
-      socket.on("roundTimeout", () => {
-        alert("Tempo da rodada esgotado!");
-      });
-
-      socket.on("roundContinued", () => {
-        document.getElementById("buzzSection").style.display = "none";
-        currentBuzzPlayer = null;
-      });
-    </script>
-  </body>
+  <script src="/js/game-admin.js"></script>
+</body>
 </html>

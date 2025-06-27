@@ -1,167 +1,33 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Buzz Game - Criar Jogo</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
-          Helvetica, Arial, sans-serif;
-        background: #0d1117;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #f0f6fc;
-        background-image: radial-gradient(
-            circle at 25% 25%,
-            #161b22 0%,
-            transparent 50%
-          ),
-          radial-gradient(circle at 75% 75%, #21262d 0%, transparent 50%);
-      }
-
-      .container {
-        text-align: center;
-        max-width: 600px;
-        width: 90%;
-        padding: 2rem;
-      }
-
-      h1 {
-        font-size: 3rem;
-        margin-bottom: 2rem;
-        background: linear-gradient(
-          135deg,
-          rgb(135, 70, 248),
-          rgb(125, 60, 238)
-        );
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: 600;
-        text-shadow: 0 0 20px rgba(135, 70, 248, 0.3);
-      }
-
-      .card {
-        background: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        transition: all 0.2s ease;
-      }
-
-      .card:hover {
-        border-color: #58a6ff;
-        box-shadow: 0 8px 32px rgba(88, 166, 255, 0.1);
-      }
-
-      button {
-        background: linear-gradient(135deg, #58a6ff, #a5a6ff);
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        font-size: 1.3rem;
-        font-weight: 600;
-        border-radius: 6px;
-        cursor: pointer;
-        margin: 1rem 0.5rem;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
-      }
-
-      button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(88, 166, 255, 0.4);
-        background: linear-gradient(135deg, #479cf0, #9a9bff);
-      }
-
-      #createGame {
-        background: rgb(135, 70, 248);
-        font-size: 2rem;
-        padding: 1.5rem 3rem;
-        box-shadow: 0 6px 20px rgba(135, 70, 248, 0.4);
-      }
-
-      #createGame:hover {
-        background: rgb(125, 60, 238);
-        box-shadow: 0 8px 24px rgba(135, 70, 248, 0.5);
-        transform: translateY(-2px);
-      }
-
-      p {
-        color: #8b949e;
-        margin-top: 1rem;
-        font-size: 1.1rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>🎮 Buzz Game</h1>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buzz Game - Criar Jogo</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <div class="container container--centered">
+    <div>
+      <h1 class="title">🎮 Buzz Game</h1>
+      
       <div class="card">
         <h2>Criar Novo Jogo</h2>
-        <p>Crie uma sala privada para jogar com sua equipe</p>
+        <p class="text-muted">Crie uma sala privada para jogar com sua equipe</p>
 
         <input
           id="roomTitle"
+          class="input input--large"
           placeholder="Nome da sala (ex: Quiz da Empresa, Trivia Friday...)"
-          style="
-            width: 100%;
-            padding: 1rem 1.25rem;
-            font-size: 1.1rem;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            text-align: center;
-            background: #21262d;
-            color: #f0f6fc;
-            transition: all 0.2s ease;
-          "
         />
 
-        <button id="createGame">Criar Jogo</button>
+        <button id="createGame" class="btn btn--primary">
+          Criar Jogo
+        </button>
       </div>
     </div>
+  </div>
 
-    <script>
-      document
-        .getElementById("createGame")
-        .addEventListener("click", async () => {
-          const title =
-            document.getElementById("roomTitle").value.trim() || "Buzz Game";
-
-          try {
-            const response = await fetch("/create-game", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ title }),
-            });
-
-            const { adminToken, gameToken } = await response.json();
-            window.location.href = `/admin.html?token=${adminToken}&game=${gameToken}`;
-          } catch (error) {
-            console.error("Erro ao criar jogo:", error);
-            alert("Erro ao criar jogo. Tente novamente.");
-          }
-        });
-
-      document.getElementById("roomTitle").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          document.getElementById("createGame").click();
-        }
-      });
-    </script>
-  </body>
+  <script src="/js/game-creator.js"></script>
+</body>
 </html>
