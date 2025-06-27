@@ -87,9 +87,10 @@
 
       #createGame {
         background: rgb(135, 70, 248);
-        font-size: 2rem;
-        padding: 1.5rem 3rem;
+        font-size: 1.8rem;
+        padding: 1.2rem 2.5rem;
         box-shadow: 0 6px 20px rgba(135, 70, 248, 0.4);
+        margin: 1.5rem 0;
       }
 
       #createGame:hover {
@@ -98,10 +99,49 @@
         transform: translateY(-2px);
       }
 
+      input {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.2rem;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        margin: 1rem 0;
+        text-align: center;
+        background: #21262d;
+        color: #f0f6fc;
+        transition: all 0.2s ease;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #58a6ff;
+        box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: #7d8590;
+        font-weight: 400;
+      }
+
       p {
         color: #8b949e;
-        margin-top: 1rem;
+        margin-bottom: 1.5rem;
         font-size: 1.1rem;
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2rem;
+        }
+        .container {
+          padding: 1rem;
+        }
+        #createGame {
+          font-size: 1.5rem;
+          padding: 1rem 2rem;
+        }
       }
     </style>
   </head>
@@ -115,18 +155,6 @@
         <input
           id="roomTitle"
           placeholder="Nome da sala (ex: Quiz da Empresa, Trivia Friday...)"
-          style="
-            width: 100%;
-            padding: 1rem 1.25rem;
-            font-size: 1.1rem;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-            text-align: center;
-            background: #21262d;
-            color: #f0f6fc;
-            transition: all 0.2s ease;
-          "
         />
 
         <button id="createGame">Criar Jogo</button>
