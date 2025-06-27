@@ -1,84 +1,6 @@
-:root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
-  --border-color: #30363d;
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --accent-primary: rgb(135, 70, 248);
-  --accent-secondary: rgb(125, 60, 238);
-  --accent-blue: #58a6ff;
-  --accent-yellow: rgb(255, 198, 41);
-  --error-color: #c93026;
+/* Reusable Components */
 
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
-    Helvetica, Arial, sans-serif;
-  --border-radius: 8px;
-  --border-radius-large: 12px;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: var(--font-family);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
-  background-image: radial-gradient(
-      circle at 25% 25%,
-      var(--bg-secondary) 0%,
-      transparent 50%
-    ),
-    radial-gradient(circle at 75% 75%, var(--bg-tertiary) 0%, transparent 50%);
-}
-
-.container {
-  max-width: 600px;
-  width: 90%;
-  margin: 0 auto;
-  padding: var(--spacing-xl);
-}
-
-.container--admin {
-  max-width: 1200px;
-}
-
-.container--centered {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  text-align: center;
-}
-
-.title {
-  font-size: 3rem;
-  margin-bottom: var(--spacing-xl);
-  background: linear-gradient(
-    135deg,
-    var(--accent-primary),
-    var(--accent-secondary)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 600;
-  text-shadow: 0 0 20px rgba(135, 70, 248, 0.3);
-}
-
-.title--admin {
-  font-size: 2.5rem;
-  text-align: center;
-}
-
+/* Card Component */
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -94,6 +16,7 @@ body {
   box-shadow: 0 8px 32px rgba(88, 166, 255, 0.1);
 }
 
+/* Input Component */
 .input {
   padding: var(--spacing-md) 1.25rem;
   font-size: 1.1rem;
@@ -118,6 +41,7 @@ body {
   text-align: center;
 }
 
+/* Button Component */
 .btn {
   background: linear-gradient(135deg, var(--accent-blue), #a5a6ff);
   color: white;
@@ -192,12 +116,22 @@ body {
   box-shadow: 0 2px 8px rgba(201, 48, 38, 0.3);
 }
 
-.status {
-  font-size: 1.3rem;
-  margin: var(--spacing-md) 0;
-  font-weight: 500;
+.btn--success {
+  background: #28a745;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
 
+.btn--success:hover {
+  background: #218838;
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+.btn--small {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+}
+
+/* Score List Component */
 .score-list {
   list-style: none;
   overflow-y: auto;
@@ -243,6 +177,7 @@ body {
   font-size: 1.2rem;
 }
 
+/* Controls Component */
 .controls {
   display: flex;
   gap: var(--spacing-md);
@@ -260,12 +195,7 @@ body {
   flex-wrap: wrap;
 }
 
-.text-muted {
-  color: var(--text-secondary);
-  margin-top: var(--spacing-md);
-  font-size: 1.1rem;
-}
-
+/* Player Info Component */
 .player-info {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
@@ -274,15 +204,8 @@ body {
   margin: var(--spacing-md) 0;
 }
 
+/* Responsive Components */
 @media (max-width: 768px) {
-  .container {
-    padding: var(--spacing-md);
-  }
-
-  .title {
-    font-size: 2rem;
-  }
-
   .btn--primary,
   .btn--buzz {
     font-size: 1.5rem;

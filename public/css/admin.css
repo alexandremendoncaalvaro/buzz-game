@@ -1,0 +1,152 @@
+/* Admin-specific styles (admin.html) */
+
+/* Admin Layout */
+.container--admin {
+  max-width: 1200px;
+}
+
+.title--admin {
+  font-size: 2.5rem;
+  text-align: center;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.admin-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Admin Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--spacing-md);
+}
+
+.table th,
+.table td {
+  padding: var(--spacing-md);
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+}
+
+.table .leader {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
+  border-left: 3px solid #ffd700;
+}
+
+/* Buzz Alert */
+.buzz-alert {
+  background: var(--accent-yellow);
+  color: var(--bg-tertiary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  text-align: center;
+  margin: var(--spacing-md) 0;
+  font-weight: bold;
+  display: none;
+}
+
+.buzz-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-top: var(--spacing-md);
+}
+
+/* Game Info */
+.game-info {
+  background: var(--bg-tertiary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-lg);
+}
+
+.game-info-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.game-code {
+  font-family: monospace;
+  font-size: 1.2rem;
+}
+
+.game-link-section {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.game-link-input {
+  width: 300px;
+}
+
+/* Timer */
+.timer {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--accent-yellow);
+  text-align: center;
+  margin: var(--spacing-md) 0;
+}
+
+/* Admin Form Controls */
+.secret-input {
+  flex: 1;
+  min-width: 250px;
+}
+
+.points-input {
+  width: 150px;
+}
+
+.end-game-section {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+}
+
+/* Admin Responsive */
+@media (max-width: 768px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .table {
+    font-size: 0.9rem;
+  }
+  
+  .game-info-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .game-link-section {
+    flex-direction: column;
+  }
+  
+  .game-link-input {
+    width: 100%;
+  }
+}

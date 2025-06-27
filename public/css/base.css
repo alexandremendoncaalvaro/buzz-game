@@ -1,0 +1,99 @@
+/* Design System - CSS Variables */
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --border-color: #30363d;
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --accent-primary: rgb(135, 70, 248);
+  --accent-secondary: rgb(125, 60, 238);
+  --accent-blue: #58a6ff;
+  --accent-yellow: rgb(255, 198, 41);
+  --error-color: #c93026;
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    Helvetica, Arial, sans-serif;
+  --border-radius: 8px;
+  --border-radius-large: 12px;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base Styles */
+body {
+  font-family: var(--font-family);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  background-image: radial-gradient(
+      circle at 25% 25%,
+      var(--bg-secondary) 0%,
+      transparent 50%
+    ),
+    radial-gradient(circle at 75% 75%, var(--bg-tertiary) 0%, transparent 50%);
+}
+
+/* Layout */
+.container {
+  max-width: 600px;
+  width: 90%;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.container--centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+/* Typography */
+.title {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-xl);
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary),
+    var(--accent-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+  text-shadow: 0 0 20px rgba(135, 70, 248, 0.3);
+}
+
+.text-muted {
+  color: var(--text-secondary);
+  margin-top: var(--spacing-md);
+  font-size: 1.1rem;
+}
+
+.status {
+  font-size: 1.3rem;
+  margin: var(--spacing-md) 0;
+  font-weight: 500;
+}
+
+/* Responsive Base */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-md);
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}

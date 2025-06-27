@@ -4,122 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Buzz Game</title>
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/admin.css">
   <script src="/socket.io/socket.io.js"></script>
-  <style>
-    .admin-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--spacing-lg);
-      margin-top: var(--spacing-lg);
-    }
-
-    .admin-controls {
-      display: flex;
-      gap: var(--spacing-md);
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: var(--spacing-md);
-    }
-
-    .table th,
-    .table td {
-      padding: var(--spacing-md);
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .table th {
-      background: var(--bg-tertiary);
-      font-weight: 600;
-    }
-
-    .table .leader {
-      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
-      border-left: 3px solid #ffd700;
-    }
-
-    .buzz-alert {
-      background: var(--accent-yellow);
-      color: var(--bg-tertiary);
-      padding: var(--spacing-lg);
-      border-radius: var(--border-radius);
-      text-align: center;
-      margin: var(--spacing-md) 0;
-      font-weight: bold;
-      display: none;
-    }
-
-    .buzz-actions {
-      display: flex;
-      gap: var(--spacing-md);
-      justify-content: center;
-      margin-top: var(--spacing-md);
-    }
-
-    .btn--success {
-      background: #28a745;
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
-
-    .btn--success:hover {
-      background: #218838;
-      box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
-    }
-
-    .btn--small {
-      padding: var(--spacing-sm) var(--spacing-md);
-      font-size: 0.9rem;
-    }
-
-    .game-info {
-      background: var(--bg-tertiary);
-      padding: var(--spacing-md);
-      border-radius: var(--border-radius);
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .timer {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--accent-yellow);
-      text-align: center;
-      margin: var(--spacing-md) 0;
-    }
-
-    @media (max-width: 768px) {
-      .admin-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .admin-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      
-      .table {
-        font-size: 0.9rem;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="container container--admin">
     <h1 id="gameTitle" class="title title--admin">Admin - Buzz Game</h1>
 
     <div class="game-info">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
+      <div class="game-info-content">
         <div>
           <strong>Código do Jogo:</strong> 
-          <span id="gameCode" style="font-family: monospace; font-size: 1.2rem;">-</span>
+          <span id="gameCode" class="game-code">-</span>
         </div>
-        <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
-          <input id="gameLink" class="input" style="width: 300px;" readonly>
+        <div class="game-link-section">
+          <input id="gameLink" class="input game-link-input" readonly>
           <button id="copyLink" class="btn">📋 Copiar Link</button>
         </div>
       </div>
@@ -131,19 +32,17 @@
       <div class="admin-controls">
         <input 
           id="secret" 
-          class="input" 
-          placeholder="Digite a resposta secreta..." 
-          style="flex: 1; min-width: 250px;"
+          class="input secret-input" 
+          placeholder="Digite a resposta secreta..."
         >
         <input 
           id="maxPoints" 
-          class="input" 
+          class="input points-input" 
           type="number" 
           value="200" 
           min="10" 
           max="1000"
           placeholder="Pontos máximos"
-          style="width: 150px;"
         >
         <button id="startRound" class="btn btn--primary">🚀 Iniciar Rodada</button>
         <button id="cancelRound" class="btn btn--danger" disabled>❌ Cancelar</button>
@@ -192,7 +91,7 @@
       </div>
     </div>
 
-    <div class="card" style="text-align: center; margin-top: var(--spacing-lg);">
+    <div class="card end-game-section">
       <button id="endGame" class="btn btn--danger">
         🏁 Encerrar Jogo
       </button>
