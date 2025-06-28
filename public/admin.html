@@ -12,32 +12,10 @@
       <h1 id="roomTitle">Admin - Buzz Games</h1>
 
       <div class="card">
-        <div id="gameInfo" style="display: none">
-          <div style="position: relative; margin-bottom: 1.5rem">
-            <h3 style="text-align: center; color: #f0f6fc; margin: 0">
-              🎮 Links da Sala
-            </h3>
-            <button
-              id="endGame"
-              onclick="endGame()"
-              style="
-                position: absolute;
-                top: 0;
-                right: 0;
-                background: #21262d;
-                color: #7d8590;
-                border: 1px solid #30363d;
-                padding: 0.5rem 1rem;
-                font-size: 0.85rem;
-                font-weight: normal;
-                border-radius: 6px;
-                cursor: pointer;
-                box-shadow: none;
-                transition: all 0.2s ease;
-              "
-              onmouseover="this.style.background='#30363d'; this.style.color='#f85149'"
-              onmouseout="this.style.background='#21262d'; this.style.color='#7d8590'"
-            >
+        <div id="gameInfo" class="hidden">
+          <div class="game-info-header">
+            <h3 class="game-info-title">🎮 Links da Sala</h3>
+            <button id="endGame" onclick="endGame()" class="end-game-btn">
               🚪 Sair
             </button>
           </div>
@@ -59,49 +37,19 @@
         </div>
 
         <div class="game-controls">
-          <h3 style="text-align: center; color: #f0f6fc; margin-bottom: 1.5rem">
-            ⚙️ Controles do Jogo
-          </h3>
+          <h3 class="game-controls-title">⚙️ Controles do Jogo</h3>
 
           <div class="controls">
-            <div class="controls-row" style="width: 100%; margin-bottom: 1rem">
-              <label
-                for="secret"
-                style="
-                  display: block;
-                  font-weight: 600;
-                  color: #8b949e;
-                  margin-bottom: 0.5rem;
-                  font-size: 1rem;
-                "
-              >
-                Resposta Correta
-              </label>
+            <div class="controls-row controls-row-full">
+              <label for="secret" class="input-label"> Resposta Correta </label>
               <input
                 id="secret"
                 placeholder="Digite a resposta que os jogadores devem acertar"
               />
             </div>
-            <div
-              class="controls-row"
-              style="
-                display: flex;
-                gap: 1rem;
-                align-items: end;
-                flex-wrap: wrap;
-              "
-            >
-              <div style="flex: 1; min-width: 200px">
-                <label
-                  for="maxPts"
-                  style="
-                    display: block;
-                    font-weight: 600;
-                    color: #8b949e;
-                    margin-bottom: 0.5rem;
-                    font-size: 1rem;
-                  "
-                >
+            <div class="controls-row controls-layout">
+              <div class="input-group">
+                <label for="maxPts" class="input-label">
                   Pontos/Segundos Máximos
                 </label>
                 <input
@@ -111,32 +59,22 @@
                   placeholder="200"
                 />
               </div>
-              <div class="button-container" style="display: flex; gap: 1rem">
+              <div class="button-group">
                 <button id="start">▶️ Iniciar Rodada</button>
-                <button id="cancel" style="display: none">
-                  ❌ Cancelar Rodada
-                </button>
+                <button id="cancel" class="hidden">❌ Cancelar Rodada</button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="roundStatus" class="round-status" style="display: none">
+      <div id="roundStatus" class="round-status hidden">
         <h3>🎯 Rodada Ativa</h3>
         <p id="currentRound"></p>
-        <p
-          id="roundTimer"
-          style="
-            font-size: 1.5rem;
-            color: #f2cc60;
-            font-weight: bold;
-            margin: 1rem 0;
-          "
-        ></p>
+        <p id="roundTimer" class="round-timer"></p>
       </div>
 
-      <div id="buzzSection" class="buzz-section" style="display: none">
+      <div id="buzzSection" class="buzz-section hidden">
         <h3 id="buzzPlayer"></h3>
         <div>
           <button id="correct" class="correct">✅ Correto</button>
@@ -252,7 +190,7 @@
         const playerLink = `${baseUrl}/index.html?game=${gameToken}`;
 
         document.getElementById("gameLink").value = playerLink;
-        document.getElementById("gameInfo").style.display = "block";
+        document.getElementById("gameInfo").classList.remove("hidden");
       }
 
       document.getElementById("start").onclick = () => {
@@ -272,7 +210,7 @@
             playerId: currentBuzzPlayer,
             correct: true,
           });
-          document.getElementById("buzzSection").style.display = "none";
+          document.getElementById("buzzSection").classList.add("hidden");
         }
       };
 
@@ -282,7 +220,7 @@
             playerId: currentBuzzPlayer,
             correct: false,
           });
-          document.getElementById("buzzSection").style.display = "none";
+          document.getElementById("buzzSection").classList.add("hidden");
         }
       };
 
@@ -341,18 +279,17 @@
             : "";
 
           const scoreDisplay = p.score > 0 ? `${p.score} pts` : "0 pts";
+          const scoreClass = p.score > 0 ? "positive" : "neutral";
 
           li.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-              <span style="font-size: 1.2em;">${emoji}</span>
-              <span style="font-weight: bold; color: #58a6ff;">${position}</span>
+            <div class="admin-score-item-layout">
+              <span class="score-emoji">${emoji}</span>
+              <span class="score-position">${position}</span>
               <span data-player-name><strong>${p.name}</strong></span>
               ${blockedInfo}
             </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-              <span style="font-weight: bold; color: ${
-                p.score > 0 ? "#7c3aed" : "#6b7280"
-              };" data-score>
+            <div class="admin-score-item-right">
+              <span class="score-item-points ${scoreClass}" data-score>
                 ${scoreDisplay}
               </span>
               <button class="remove-player" data-player-id="${
@@ -362,9 +299,7 @@
           `;
 
           if (index === 0 && p.score > 0) {
-            li.style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
-            li.style.border = "2px solid #fbbf24";
-            li.style.boxShadow = "0 4px 12px rgba(251, 191, 36, 0.3)";
+            li.classList.add("leader-item");
           }
 
           if (scoreIncreased) {
@@ -390,7 +325,7 @@
         document.getElementById(
           "buzzPlayer"
         ).textContent = `${name} fez buzz! A resposta está correta?`;
-        document.getElementById("buzzSection").style.display = "block";
+        document.getElementById("buzzSection").classList.remove("hidden");
       });
 
       socket.on("historyUpdate", (history) => {
@@ -414,20 +349,20 @@
       });
 
       socket.on("roundStarted", ({ secret, maxPoints }) => {
-        document.getElementById("roundStatus").style.display = "block";
+        document.getElementById("roundStatus").classList.remove("hidden");
         document.getElementById(
           "currentRound"
         ).textContent = `Pergunta: ${secret} | Máximo: ${maxPoints} pontos`;
-        document.getElementById("start").style.display = "none";
-        document.getElementById("cancel").style.display = "inline";
+        document.getElementById("start").classList.add("hidden");
+        document.getElementById("cancel").classList.remove("hidden");
         document.getElementById("secret").value = "";
       });
 
       socket.on("roundReset", () => {
-        document.getElementById("roundStatus").style.display = "none";
-        document.getElementById("buzzSection").style.display = "none";
-        document.getElementById("start").style.display = "inline";
-        document.getElementById("cancel").style.display = "none";
+        document.getElementById("roundStatus").classList.add("hidden");
+        document.getElementById("buzzSection").classList.add("hidden");
+        document.getElementById("start").classList.remove("hidden");
+        document.getElementById("cancel").classList.add("hidden");
         document.getElementById("roundTimer").textContent = "";
       });
 
@@ -442,7 +377,7 @@
       });
 
       socket.on("roundContinued", () => {
-        document.getElementById("buzzSection").style.display = "none";
+        document.getElementById("buzzSection").classList.add("hidden");
         currentBuzzPlayer = null;
       });
     </script>

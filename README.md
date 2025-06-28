@@ -2,7 +2,7 @@
 
 ### 1. Como Funciona
 
-Esta é uma plataforma flexível para criar jogos de quiz e competição em tempo real. A ideia é simples: um **Admin** cria uma sala privada, apresenta desafios, e os **Jogadores** competem para responder primeiro usando links seguros e únicos. O sistema gerencia tempo, ordem de buzz, pontuação e isolamento entre salas.
+Esta é uma plataforma flexível para criar jogos de quiz e competição em chamadas de vídeo com o time. A ideia é simples: Com o time reunido em uma chamada de vídeo, um **Admin** entra na plataforma e cria uma sala privada, apresenta desafios, e os **Jogadores** competem para responder primeiro usando links seguros e únicos. O sistema gerencia tempo, ordem de buzz, pontuação e isolamento entre salas.
 
 A versatilidade está na flexibilidade: o "desafio" pode ser qualquer coisa que você apresente aos jogadores - seja compartilhando tela, lendo perguntas ou mostrando vídeos.
 

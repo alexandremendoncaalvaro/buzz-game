@@ -17,15 +17,9 @@
         <button id="join">Entrar</button>
       </div>
 
-      <div id="game" style="display: none">
+      <div id="game" class="hidden">
         <div id="playerInfo" class="player-info">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
+          <div class="player-header">
             <h3 id="playerName"></h3>
             <button id="logout">🚪 Sair</button>
           </div>
@@ -33,16 +27,12 @@
 
         <div class="card">
           <p id="status">Aguardando rodada...</p>
-          <div
-            id="blockedMessage"
-            class="blocked-message"
-            style="display: none"
-          >
+          <div id="blockedMessage" class="blocked-message hidden">
             ❌ Resposta incorreta! Aguarde
             <span id="countdown" class="countdown">30</span> segundos para
             tentar novamente.
           </div>
-          <div id="buzzContainer" style="display: none">
+          <div id="buzzContainer" class="hidden">
             <button id="buzz" disabled>🚨 RESPONDER!</button><br />
             <small>Pressione ESPAÇO para acionar o botão de resposta</small>
           </div>
@@ -110,8 +100,8 @@
           name,
           playerId: finalPlayerId,
         });
-        document.getElementById("login").style.display = "none";
-        document.getElementById("game").style.display = "block";
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("game").classList.remove("hidden");
         document.getElementById("playerName").textContent = `Jogador: ${name}`;
       }
 
@@ -141,8 +131,8 @@
 
       document.getElementById("logout").onclick = () => {
         socket.emit("logout");
-        document.getElementById("login").style.display = "block";
-        document.getElementById("game").style.display = "none";
+        document.getElementById("login").classList.remove("hidden");
+        document.getElementById("game").classList.add("hidden");
         document.getElementById("name").value = "";
         const newUrl = `${window.location.pathname}?game=${gameToken}`;
         window.history.replaceState({}, "", newUrl);
@@ -154,11 +144,12 @@
       window.addEventListener("keydown", (e) => {
         if (
           e.code === "Space" &&
-          document.getElementById("game").style.display !== "none" &&
-          document.getElementById("buzzContainer").style.display !== "none" &&
-          document.getElementById("buzzContainer").style.display === "block" &&
+          !document.getElementById("game").classList.contains("hidden") &&
+          !document
+            .getElementById("buzzContainer")
+            .classList.contains("hidden") &&
           !document.getElementById("buzz").disabled &&
-          document.getElementById("blockedMessage").style.display === "none"
+          document.getElementById("blockedMessage").classList.contains("hidden")
         ) {
           e.preventDefault();
           document.getElementById("buzz").click();
@@ -170,8 +161,8 @@
           clearInterval(blockTimer);
           blockTimer = null;
         }
-        document.getElementById("blockedMessage").style.display = "none";
-        document.getElementById("buzzContainer").style.display = "block";
+        document.getElementById("blockedMessage").classList.add("hidden");
+        document.getElementById("buzzContainer").classList.remove("hidden");
         document.getElementById("buzz").disabled = false;
         document.getElementById("status").textContent =
           "Rodada ativa - Aperte o buzzer!";
@@ -187,14 +178,14 @@
             "status"
           ).textContent = `${name} fez buzz! Aguarde validação...`;
         }
-        document.getElementById("buzzContainer").style.display = "none";
+        document.getElementById("buzzContainer").classList.add("hidden");
       });
 
       let blockTimer = null;
 
       socket.on("blocked", ({ duration, startTime }) => {
-        document.getElementById("buzzContainer").style.display = "none";
-        document.getElementById("blockedMessage").style.display = "block";
+        document.getElementById("buzzContainer").classList.add("hidden");
+        document.getElementById("blockedMessage").classList.remove("hidden");
 
         if (blockTimer) {
           clearInterval(blockTimer);
@@ -207,7 +198,7 @@
           if (remaining <= 0) {
             clearInterval(blockTimer);
             blockTimer = null;
-            document.getElementById("blockedMessage").style.display = "none";
+            document.getElementById("blockedMessage").classList.add("hidden");
           } else {
             document.getElementById("countdown").textContent = remaining;
           }
@@ -228,19 +219,23 @@
           document.getElementById("status").textContent = message;
 
           if (correct) {
-            document.getElementById("buzzContainer").style.display = "none";
+            document.getElementById("buzzContainer").classList.add("hidden");
           } else {
             const myName = document.getElementById("playerName").textContent;
             if (
               playerName !== myName &&
-              document.getElementById("blockedMessage").style.display === "none"
+              document
+                .getElementById("blockedMessage")
+                .classList.contains("hidden")
             ) {
-              document.getElementById("buzzContainer").style.display = "block";
+              document
+                .getElementById("buzzContainer")
+                .classList.remove("hidden");
               document.getElementById("buzz").disabled = false;
               document.getElementById("status").textContent =
                 message + " Você pode tentar!";
             } else if (playerName === myName) {
-              document.getElementById("buzzContainer").style.display = "none";
+              document.getElementById("buzzContainer").classList.add("hidden");
             }
           }
         }
@@ -251,7 +246,7 @@
           clearInterval(blockTimer);
           blockTimer = null;
         }
-        document.getElementById("blockedMessage").style.display = "none";
+        document.getElementById("blockedMessage").classList.add("hidden");
 
         if (
           document.getElementById("status").textContent !==
@@ -262,7 +257,7 @@
           document.getElementById("status").textContent !==
             "Aguardando rodada..."
         ) {
-          document.getElementById("buzzContainer").style.display = "block";
+          document.getElementById("buzzContainer").classList.remove("hidden");
           document.getElementById("buzz").disabled = false;
           document.getElementById("status").textContent =
             "Você pode tentar novamente!";
@@ -274,8 +269,8 @@
           clearInterval(blockTimer);
           blockTimer = null;
         }
-        document.getElementById("blockedMessage").style.display = "none";
-        document.getElementById("buzzContainer").style.display = "none";
+        document.getElementById("blockedMessage").classList.add("hidden");
+        document.getElementById("buzzContainer").classList.add("hidden");
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
           "Aguardando próxima rodada...";
@@ -334,25 +329,22 @@
           }
 
           const scoreDisplay = p.score > 0 ? `${p.score} pts` : "0 pts";
+          const scoreClass = p.score > 0 ? "positive" : "neutral";
           li.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.2em;">${emoji}</span>
-                <span style="font-weight: bold; color: #58a6ff;">${position}</span>
+            <div class="score-item-layout">
+              <div class="score-item-info">
+                <span class="score-emoji">${emoji}</span>
+                <span class="score-position">${position}</span>
                 <span data-player-name>${p.name}</span>
               </div>
-              <div style="font-weight: bold; color: ${
-                p.score > 0 ? "#7c3aed" : "#6b7280"
-              };" data-score>
+              <div class="score-item-points ${scoreClass}" data-score>
                 ${scoreDisplay}
               </div>
             </div>
           `;
 
           if (index === 0 && p.score > 0) {
-            li.style.background = "linear-gradient(135deg, #1e293b, #0f172a)";
-            li.style.border = "2px solid #fbbf24";
-            li.style.boxShadow = "0 4px 12px rgba(251, 191, 36, 0.3)";
+            li.classList.add("leader-item");
           }
 
           if (scoreIncreased) {
@@ -388,8 +380,8 @@
       socket.on("disconnect", () => {});
 
       socket.on("forceLogout", () => {
-        document.getElementById("login").style.display = "block";
-        document.getElementById("game").style.display = "none";
+        document.getElementById("login").classList.remove("hidden");
+        document.getElementById("game").classList.add("hidden");
         document.getElementById("name").value = "";
         window.history.replaceState({}, "", window.location.pathname);
         alert("Você foi removido do jogo pelo administrador.");

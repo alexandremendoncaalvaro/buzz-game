@@ -279,3 +279,52 @@ p {
   color: #fff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.score-item-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-item-points {
+  font-weight: bold;
+}
+
+.score-item-points.positive {
+  color: #7c3aed;
+}
+
+.score-item-points.neutral {
+  color: #6b7280;
+}
+
+.score-emoji {
+  font-size: 1.2em;
+}
+
+.score-position {
+  font-weight: bold;
+  color: #58a6ff;
+}
+
+.leader-item {
+  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+  border: 2px solid #fbbf24 !important;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3) !important;
+}
