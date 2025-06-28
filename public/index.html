@@ -157,11 +157,18 @@
       });
 
       socket.on("roundStarted", () => {
+        // Limpa timer de bloqueio se ainda estiver rodando
         if (blockTimer) {
           clearInterval(blockTimer);
           blockTimer = null;
         }
-        document.getElementById("blockedMessage").classList.add("hidden");
+
+        // Esconde mensagem de bloqueio
+        const blockedEl = document.getElementById("blockedMessage");
+        blockedEl.classList.add("hidden");
+        blockedEl.style.display = "none";
+
+        // Mostra container de buzz e habilita botão
         document.getElementById("buzzContainer").classList.remove("hidden");
         document.getElementById("buzz").disabled = false;
         document.getElementById("status").textContent =
@@ -169,7 +176,9 @@
       });
 
       socket.on("buzzed", ({ name }) => {
-        const myName = document.getElementById("playerName").textContent;
+        const myName = document
+          .getElementById("playerName")
+          .textContent.replace("Jogador: ", "");
         if (name === myName) {
           document.getElementById("status").textContent =
             "Você fez buzz! Aguarde validação...";
@@ -183,71 +192,100 @@
 
       let blockTimer = null;
 
-      socket.on("blocked", ({ duration, startTime }) => {
+      socket.on("blocked", ({ duration }) => {
+        document.getElementById("buzz").disabled = true;
         document.getElementById("buzzContainer").classList.add("hidden");
-        document.getElementById("blockedMessage").classList.remove("hidden");
+
+        const blockedEl = document.getElementById("blockedMessage");
+        blockedEl.classList.remove("hidden");
+        blockedEl.style.display = "block";
+
+        document.getElementById("status").textContent =
+          "Você errou! Aguarde para tentar novamente.";
 
         if (blockTimer) {
           clearInterval(blockTimer);
         }
 
-        blockTimer = setInterval(() => {
-          const elapsed = Date.now() - startTime;
-          const remaining = Math.ceil((duration - elapsed) / 1000);
+        // Define o tempo final do bloqueio baseado no momento atual do cliente
+        const endTime = Date.now() + duration;
+
+        const updateCountdown = () => {
+          const remaining = Math.ceil((endTime - Date.now()) / 1000);
 
           if (remaining <= 0) {
             clearInterval(blockTimer);
             blockTimer = null;
-            document.getElementById("blockedMessage").classList.add("hidden");
+            document.getElementById("countdown").textContent = "0";
           } else {
             document.getElementById("countdown").textContent = remaining;
           }
-        }, 100);
+        };
+
+        updateCountdown(); // Atualiza imediatamente
+        blockTimer = setInterval(updateCountdown, 100); // E depois a cada 100ms para fluidez
       });
 
       socket.on(
         "answerProcessed",
         ({ correct, playerName, points, secret }) => {
-          let message = correct
-            ? `${playerName} acertou! (+${points}pts)`
-            : `${playerName} errou.`;
-
-          if (correct && secret) {
-            message += ` A resposta era: ${secret}`;
-          }
-
-          document.getElementById("status").textContent = message;
+          const myName = document
+            .getElementById("playerName")
+            .textContent.replace("Jogador: ", "");
 
           if (correct) {
+            let message = `${playerName} acertou! (+${points}pts)`;
+            if (secret) {
+              message += ` A resposta era: ${secret}`;
+            }
+            document.getElementById("status").textContent = message;
             document.getElementById("buzzContainer").classList.add("hidden");
           } else {
-            const myName = document.getElementById("playerName").textContent;
-            if (
-              playerName !== myName &&
-              document
-                .getElementById("blockedMessage")
-                .classList.contains("hidden")
-            ) {
-              document
-                .getElementById("buzzContainer")
-                .classList.remove("hidden");
-              document.getElementById("buzz").disabled = false;
+            // Quando alguém erra
+            if (playerName === myName) {
+              // Se fui eu que errei - NÃO atualiza o status aqui
+              // Deixa o evento "blocked" cuidar da mensagem
+              document.getElementById("buzzContainer").classList.add("hidden");
+            } else {
+              // Se foi outra pessoa que errou
+              const message = `${playerName} errou.`;
               document.getElementById("status").textContent =
                 message + " Você pode tentar!";
-            } else if (playerName === myName) {
-              document.getElementById("buzzContainer").classList.add("hidden");
+
+              // Só mostra o botão se eu não estou bloqueado
+              if (
+                document
+                  .getElementById("blockedMessage")
+                  .classList.contains("hidden")
+              ) {
+                document
+                  .getElementById("buzzContainer")
+                  .classList.remove("hidden");
+                document.getElementById("buzz").disabled = false;
+              }
             }
           }
         }
       );
 
       socket.on("unblocked", () => {
+        // Limpa o timer se ainda estiver rodando
         if (blockTimer) {
           clearInterval(blockTimer);
           blockTimer = null;
         }
-        document.getElementById("blockedMessage").classList.add("hidden");
 
+        // Esconde a mensagem de bloqueio
+        const blockedEl = document.getElementById("blockedMessage");
+        blockedEl.classList.add("hidden");
+        blockedEl.style.display = "none";
+
+        // Reabilita o botão
+        document.getElementById("buzz").disabled = false;
+        document.getElementById("status").textContent =
+          "Você pode tentar novamente!";
+
+        // Só mostra o botão se não está aguardando validação ou próxima rodada
         if (
           document.getElementById("status").textContent !==
             "Aguardando próxima rodada..." &&
@@ -258,18 +296,22 @@
             "Aguardando rodada..."
         ) {
           document.getElementById("buzzContainer").classList.remove("hidden");
-          document.getElementById("buzz").disabled = false;
-          document.getElementById("status").textContent =
-            "Você pode tentar novamente!";
         }
       });
 
       socket.on("roundReset", () => {
+        // Limpa timer de bloqueio se ainda estiver rodando
         if (blockTimer) {
           clearInterval(blockTimer);
           blockTimer = null;
         }
-        document.getElementById("blockedMessage").classList.add("hidden");
+
+        // Esconde mensagem de bloqueio
+        const blockedEl = document.getElementById("blockedMessage");
+        blockedEl.classList.add("hidden");
+        blockedEl.style.display = "none";
+
+        // Esconde container de buzz e desabilita botão
         document.getElementById("buzzContainer").classList.add("hidden");
         document.getElementById("buzz").disabled = true;
         document.getElementById("status").textContent =
