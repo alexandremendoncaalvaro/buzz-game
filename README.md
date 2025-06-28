@@ -41,14 +41,43 @@ Implementei esta dinâmica com sucesso para uma equipe:
 - **Acompanhar ranking** e histórico em tempo real
 - **Sair voluntariamente** a qualquer momento
 
-### 3. Arquitetura Multi-Tenant
+### 3. Configuração e Instalação
+
+#### Variáveis de Ambiente
+
+O projeto usa um arquivo `.env` para configurações. Copie o arquivo de exemplo e ajuste conforme necessário:
+
+```bash
+cp .env.example .env
+```
+
+Variáveis disponíveis:
+
+- `PORT`: Porta do servidor (padrão: 3000)
+
+#### Instalação e Execução
+
+```bash
+# Instalar dependências
+npm install
+
+# Executar o servidor
+npm start
+
+# Ou para desenvolvimento
+npm run dev
+```
+
+O servidor estará disponível em `http://localhost:3000` (ou na porta configurada no `.env`).
+
+### 4. Arquitetura Multi-Tenant
 
 - **Isolamento total:** Cada sala possui tokens únicos para admin e jogadores
 - **Segurança:** Apenas quem possui o link correto pode acessar uma sala
 - **Escalabilidade:** Suporte para múltiplas salas simultâneas sem interferência
 - **Persistência:** Jogadores mantêm sessão mesmo com desconexões temporárias
 
-### 4. Infraestrutura
+### 5. Infraestrutura
 
 - **Backend:** Node.js com Express para o servidor web e Socket.IO para comunicação em tempo real.
 - **Frontend:** HTML, CSS e JavaScript puro, com páginas separadas para criação, jogadores e administrador.
@@ -57,7 +86,7 @@ Implementei esta dinâmica com sucesso para uma equipe:
 - **Compatibilidade:** Suporta Node.js versão 18.x (compatível com plataformas modernas).
 - **Dependências:** Express 4.18.2 e Socket.IO 4.6.1 para máxima estabilidade.
 
-### 5. Como Usar
+### 6. Como Usar
 
 #### Guia Rápido
 
@@ -67,7 +96,7 @@ Implementei esta dinâmica com sucesso para uma equipe:
 4. **Jogar:** Inicie rodada, jogadores competem pelo buzz, valide respostas
 5. **Repetir:** Continue com novas rodadas ou encerre a sala
 
-### 6. Fluxo de uma Rodada
+### 7. Fluxo de uma Rodada
 
 1. **Admin inicia:** Define resposta secreta e pontuação máxima
 2. **Rodada ativa:** Jogadores podem dar buzz (botão ou ESPAÇO)
@@ -77,14 +106,14 @@ Implementei esta dinâmica com sucesso para uma equipe:
    - **Erro:** Jogador bloqueado 30s, rodada continua
 5. **Fim:** Alguém acerta, tempo esgota ou admin cancela
 
-### 7. Regras e Pontuação
+### 8. Regras e Pontuação
 
 - **Cálculo:** Pontos = Máximo - Segundos Decorridos
 - **Velocidade recompensada:** Quanto mais rápido, maior a pontuação
 - **Bloqueio por erro:** 30 segundos sem poder dar buzz após resposta incorreta
 - **Privacidade:** Resposta secreta só revelada quando alguém acerta
 
-### 8. Diagramas Técnicos
+### 9. Diagramas Técnicos
 
 #### Fluxo de Comunicação Multi-Tenant
 
